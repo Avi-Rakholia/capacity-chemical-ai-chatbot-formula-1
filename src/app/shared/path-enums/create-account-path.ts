@@ -1,3 +1,3 @@
 export enum CreateAccountPath {
-    createAccount = '/create-account'
+    createAccount = 'create-account'
 }
