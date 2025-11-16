@@ -3,14 +3,14 @@
       <div class="text-center mb-3">
          <img src="assets/logo.png" alt="Logo" class="logo-img" />
       </div>
-      <h1 class="text-center display-6 fw-bold mb-1">Account Log In</h1>
+      <h1 class="text-center display-6 fw-semibold text-muted mb-1">Account Log In</h1>
       <p class="text-center text-muted mb-4">
          Don't have an account?
-         <a class="text-decoration-underline" (click)="navigateToCreateAccount()" role="button">Create Account</a>
+         <a class="text-decoration-underline text-muted" (click)="navigateToCreateAccount()" role="button">Create Account</a>
       </p>
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
       <div class="mb-4">
-         <label class="form-label fw-semibold d-block mb-2">Who are you?</label>
+         <label class="form-label text-muted d-block mb-2">Who are you?</label>
          <div class="d-flex align-items-center gap-4 role-options">
             <div class="form-check">
                <input
@@ -20,7 +20,7 @@
                   value="nsight"
                   formControlName="role"
                   />
-               <label class="form-check-label" for="roleNsight">Nsight Admin</label>
+               <label class="form-check-label text-muted" for="roleNsight">Nsight Admin</label>
             </div>
             <div class="form-check">
                <input
@@ -30,7 +30,7 @@
                   value="capacity"
                   formControlName="role"
                   />
-               <label class="form-check-label" for="roleCapacity">Capacity Admin</label>
+               <label class="form-check-label text-muted" for="roleCapacity">Capacity Admin</label>
             </div>
             <div class="form-check">
                <input
@@ -40,12 +40,12 @@
                   value="user"
                   formControlName="role"
                   />
-               <label class="form-check-label" for="roleUser">User</label>
+               <label class="form-check-label text-muted" for="roleUser">User</label>
             </div>
          </div>
       </div>
       <div class="mb-3">
-         <label for="email" class="form-label fw-semibold">Email</label>
+         <label for="email" class="form-label text-muted">Email</label>
          <input
             id="email"
             class="form-control form-control-lg rounded-3"
@@ -55,7 +55,7 @@
             />
       </div>
       <div class="mb-3">
-         <label for="username" class="form-label fw-semibold">Username</label>
+         <label for="username" class="form-label text-muted">Username</label>
          <input
             id="username"
             class="form-control form-control-lg rounded-3"
@@ -65,7 +65,7 @@
             />
       </div>
       <div class="mb-2 position-relative password-section">
-         <label for="password" class="form-label fw-semibold">Password</label>
+         <label for="password" class="form-label text-muted">Password</label>
          <input
             id="password"
             class="form-control form-control-lg rounded-3"
@@ -95,20 +95,20 @@
       </div>
       <p class="small text-center text-muted mb-4">
          By creating an account, you agree to the
-         <a href="#" class="text-decoration-underline">Terms of use</a> and
-         <a href="#" class="text-decoration-underline">Privacy policy</a>
+         <a href="#" class="text-decoration-underline text-muted">Terms of use</a> and
+         <a href="#" class="text-decoration-underline text-muted">Privacy policy</a>
       </p>
-      <div class="d-grid">
+      <div class="text-center">
          <button
             type="submit"
-            class="btn btn-primary btn-lg rounded-pill"
+            class="btn btn-primary rounded-pill"
             [disabled]="loginForm.invalid"
             >
          Log In
          </button>
       </div>
       </form>
-      <div class="text-center mt-4">
+      <div class="text-center mt-2">
          <div class="mt-3">Or Log in with</div>
          <div class="d-flex justify-content-center align-items-center gap-2 mt-2">
             <img src="assets/m365.png" alt="Microsoft 365" class="m365-img" />
