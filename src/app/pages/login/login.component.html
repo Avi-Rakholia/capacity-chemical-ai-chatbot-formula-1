@@ -9,7 +9,6 @@
          <a class="text-decoration-underline" (click)="navigateToCreateAccount()" role="button">Create Account</a>
       </p>
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
-      <!-- Role / radio group -->
       <div class="mb-4">
          <label class="form-label fw-semibold d-block mb-2">Who are you?</label>
          <div class="d-flex align-items-center gap-4 role-options">
@@ -45,7 +44,6 @@
             </div>
          </div>
       </div>
-      <!-- Email -->
       <div class="mb-3">
          <label for="email" class="form-label fw-semibold">Email</label>
          <input
@@ -56,25 +54,23 @@
             formControlName="email"
             />
       </div>
-      <!-- Username -->
       <div class="mb-3">
          <label for="username" class="form-label fw-semibold">Username</label>
          <input
             id="username"
             class="form-control form-control-lg rounded-3"
             type="text"
-            placeholder="abc"
+            placeholder="Username"
             formControlName="username"
             />
       </div>
-      <!-- Password with toggle -->
-      <div class="mb-2 position-relative">
+      <div class="mb-2 position-relative password-section">
          <label for="password" class="form-label fw-semibold">Password</label>
          <input
             id="password"
-            class="form-control form-control-lg rounded-3 pe-5"
+            class="form-control form-control-lg rounded-3"
             [type]="passwordVisible ? 'text' : 'password'"
-            placeholder="●●●●●●●●"
+            placeholder="Password"
             formControlName="password"
             />
          <button
@@ -86,21 +82,22 @@
          {{ passwordVisible ? 'Hide' : 'Show' }}
          </button>
       </div>
-      <!-- password rules -->
-      <ul class="password-rules list-unstyled small text-muted mb-4">
-         <li><span class="rule-dot"></span> Use 8 or more characters</li>
-         <li><span class="rule-dot"></span> One uppercase character</li>
-         <li><span class="rule-dot"></span> One lowercase character</li>
-         <li><span class="rule-dot"></span> One special character</li>
-         <li><span class="rule-dot"></span> One numeric character</li>
-      </ul>
-      <!-- Terms -->
+      <div class="password-rules-container mb-3">
+         <div class="d-flex flex-wrap gap-3">
+            <span class="rule-item">Use 8 or more characters</span>
+            <span class="rule-item">One uppercase character</span>
+            <span class="rule-item">One lowercase character</span>
+         </div>
+         <div class="d-flex flex-wrap gap-3 mt-2">
+            <span class="rule-item">One special character</span>
+            <span class="rule-item">One numeric character</span>
+         </div>
+      </div>
       <p class="small text-center text-muted mb-4">
          By creating an account, you agree to the
          <a href="#" class="text-decoration-underline">Terms of use</a> and
          <a href="#" class="text-decoration-underline">Privacy policy</a>
       </p>
-      <!-- Log in button -->
       <div class="d-grid">
          <button
             type="submit"
@@ -111,7 +108,6 @@
          </button>
       </div>
       </form>
-      <!-- Social login -->
       <div class="text-center mt-4">
          <div class="mt-3">Or Log in with</div>
          <div class="d-flex justify-content-center align-items-center gap-2 mt-2">

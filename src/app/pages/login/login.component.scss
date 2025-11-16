@@ -1,10 +1,15 @@
 .login-card {
   width: 100%;
-  max-width: 680px;
-  border-radius: 12px;
-  border: 1px solid #cfcfcf;
+  max-width: 760px;
+  border-radius: 10px;
+  padding: 2.5rem 3rem;
   background: #ffffff;
-  box-shadow: none;
+  border: 1px solid #d0d0d0;
+}
+
+.login-card input::placeholder {
+  font-size: 14px;
+  color: #6c757d;
 }
 
 .logo-img {
@@ -34,9 +39,13 @@
   height: 1.2rem;
 }
 
+.password-section {
+  position: relative;
+}
+
 .password-toggle {
-  right: 12px;
-  top: 38px;
+  left: 92%;
+  top: 22px;
   transform: translateY(-50%);
   color: #6c757d;
   text-decoration: none;
@@ -60,6 +69,27 @@
   top: 6px;
 }
 
+.password-rules-container {
+  font-size: 14px;
+  color: #6c757d;
+
+  .rule-item {
+    position: relative;
+    padding-left: 14px;
+
+    &::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      background: #ccc;
+      border-radius: 50%;
+      position: absolute;
+      left: 0;
+      top: 6px;
+    }
+  }
+}
+
 .btn-primary {
   background-color: #4aa3ff;
   border-color: #4aa3ff;
@@ -76,6 +106,7 @@
 /* Tablet responsiveness */
 @media (max-width: 768px) {
   .login-card {
+    max-width: 100%;
     padding: 2rem;
   }
 }
