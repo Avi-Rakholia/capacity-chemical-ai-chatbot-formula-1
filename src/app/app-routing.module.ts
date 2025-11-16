@@ -5,13 +5,14 @@ import { LoginComponent } from './pages/login/login.component';
 
 
 export const routes: Routes = [
-    // {
-    //     path: '',
-    //     pathMatch: 'full',
-    //     redirectTo: LoginPath.login
-    // },
+    {
+        path: '',
+        pathMatch: 'full',
+        redirectTo: LoginPath.login
+    },
     {
         path: LoginPath.login,
+        pathMatch: 'full',
         component: LoginComponent
     }
 ];
