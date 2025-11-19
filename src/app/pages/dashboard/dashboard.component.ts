@@ -40,18 +40,6 @@ import { SupabaseService, AuthUser } from '../../services/supabase.service';
                   <p><strong>User ID:</strong> {{ currentUser()!.id }}</p>
                 </div>
               }
-              <p class="card-text">
-                Your Supabase authentication is working! This is a protected route that requires authentication.
-              </p>
-              <div class="mt-4">
-                <h5>Next Steps:</h5>
-                <ul>
-                  <li>Configure your Supabase project URL and anon key in the environment files</li>
-                  <li>Set up your database tables and policies</li>
-                  <li>Add more protected routes using the auth guard</li>
-                  <li>Implement user profile management</li>
-                </ul>
-              </div>
             </div>
           </div>
         </div>
