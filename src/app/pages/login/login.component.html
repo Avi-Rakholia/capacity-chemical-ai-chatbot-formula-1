@@ -9,6 +9,11 @@
          <a class="text-decoration-underline text-muted" (click)="navigateToCreateAccount()" role="button">Create Account</a>
       </p>
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
+         @if (errorMessage()) {
+            <div class="alert alert-danger" role="alert">
+               {{ errorMessage() }}
+            </div>
+         }
       <div class="mb-4">
          <label class="form-label text-muted d-block mb-2">Who are you?</label>
          <div class="d-flex align-items-center gap-4 role-options">
@@ -69,7 +74,7 @@
          <input
             id="password"
             class="form-control form-control-lg rounded-3"
-            [type]="passwordVisible ? 'text' : 'password'"
+            [type]="passwordVisible() ? 'text' : 'password'"
             placeholder="Password"
             formControlName="password"
             />
@@ -77,9 +82,9 @@
             type="button"
             class="btn btn-sm btn-link position-absolute password-toggle"
             aria-label="toggle password visibility"
-            (click)="passwordVisible = !passwordVisible"
+            (click)="togglePasswordVisibility()"
             >
-         {{ passwordVisible ? 'Hide' : 'Show' }}
+         {{ passwordVisible() ? 'Hide' : 'Show' }}
          </button>
       </div>
       <div class="password-rules-container mb-3">
@@ -102,17 +107,27 @@
          <button
             type="submit"
             class="btn btn-primary rounded-pill"
-            [disabled]="loginForm.invalid"
+            [disabled]="loginForm.invalid || isLoading()"
             >
-         Log In
+         @if (isLoading()) {
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+         }
+         {{ isLoading() ? 'Signing In...' : 'Log In' }}
          </button>
       </div>
       </form>
       <div class="text-center mt-2">
          <div class="mt-3">Or Log in with</div>
          <div class="d-flex justify-content-center align-items-center gap-2 mt-2">
-            <img src="assets/m365.png" alt="Microsoft 365" class="m365-img" />
-            <span class="ms-1">Microsoft 365</span>
+            <button 
+               type="button"
+               class="btn btn-outline-secondary d-flex align-items-center gap-2"
+               (click)="signInWithMicrosoft()"
+               [disabled]="isLoading()"
+               >
+               <img src="assets/m365.png" alt="Microsoft 365" class="m365-img" />
+               <span>Microsoft 365</span>
+            </button>
          </div>
       </div>
    </div>
