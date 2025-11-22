@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators, FormGroup } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { CreateAccountPath } from '../../shared/path-enums/create-account-path';
-import { SupabaseService } from '../../services/supabase.service';
+import { SupabaseService } from '../../core/services/supabase.service';
 
 @Component({
   selector: 'app-login',  
@@ -59,7 +59,7 @@ export class LoginComponent {
         });
 
         // Redirect to dashboard or appropriate page
-        this.router.navigate(['/dashboard']);
+        this.router.navigate(['/home/dashboard']);
       }
     } catch (error) {
       this.errorMessage.set('An unexpected error occurred. Please try again.');

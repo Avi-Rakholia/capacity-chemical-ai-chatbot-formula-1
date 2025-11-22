@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { createClient, SupabaseClient, AuthError, User, Session } from '@supabase/supabase-js';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { environment } from '../../../environments/environment';
 
 export interface AuthUser {
   id: string;

@@ -1,0 +1,125 @@
+<div class="home-layout">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="logo">
+            <img src="assets/capacity-chemical-logo.svg" alt="Capacity Chemical" class="logo-img">
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <button 
+            class="nav-item"
+            [class.active]="activeRoute() === 'dashboard'"
+            (click)="navigateTo('/home/dashboard')"
+          >
+            <i class="material-icons">home</i>
+            <span>Dashboard</span>
+          </button>
+
+          <button 
+            class="nav-item"
+            [class.active]="activeRoute() === 'chatbot'"
+            (click)="navigateTo('/home/chatbot')"
+          >
+            <i class="material-icons">chat</i>
+            <span>AI Chatbot</span>
+          </button>
+
+          <button 
+            class="nav-item"
+            [class.active]="activeRoute() === 'resources'"
+            (click)="navigateTo('/home/resources')"
+          >
+            <i class="material-icons">folder</i>
+            <span>Resources</span>
+          </button>
+
+          <button 
+            class="nav-item"
+            [class.active]="activeRoute() === 'approvals'"
+            (click)="navigateTo('/home/approvals')"
+          >
+            <i class="material-icons">assignment</i>
+            <span>Pending Approvals</span>
+          </button>
+
+          @if (isAdmin()) {
+            <button 
+              class="nav-item"
+              [class.active]="activeRoute() === 'users'"
+              (click)="navigateTo('/admin/users')"
+            >
+              <i class="material-icons">group</i>
+              <span>User Management</span>
+            </button>
+
+            <button 
+              class="nav-item"
+              [class.active]="activeRoute() === 'analytics'"
+              (click)="navigateTo('/admin/analytics')"
+            >
+              <i class="material-icons">analytics</i>
+              <span>Analytics</span>
+            </button>
+          }
+
+          <button 
+            class="nav-item"
+            [class.active]="activeRoute() === 'settings'"
+            (click)="navigateTo('/home/settings')"
+          >
+            <i class="material-icons">settings</i>
+            <span>Settings</span>
+          </button>
+        </nav>
+
+        <!-- User Profile Section -->
+        <div class="sidebar-footer">
+          <div class="profile-section">
+            @if (currentUser()) {
+              <div class="profile-info">
+                <div class="avatar">
+                  <img 
+                    [src]="getUserAvatar()" 
+                    [alt]="currentUser()!.email"
+                    class="avatar-img"
+                  />
+                </div>
+                <div class="user-details">
+                  <div class="user-name">{{ getUserDisplayName() }}</div>
+                  <div class="user-role">{{ getRoleDisplayName() }}</div>
+                </div>
+                <div class="profile-actions">
+                  <button 
+                    class="profile-menu-btn"
+                    (click)="toggleProfileMenu()"
+                    [class.active]="profileMenuOpen()"
+                  >
+                    <i class="material-icons">more_vert</i>
+                  </button>
+                </div>
+              </div>
+
+              @if (profileMenuOpen()) {
+                <div class="profile-menu">
+                  <button class="menu-item" (click)="navigateTo('/home/settings')">
+                    <i class="material-icons">person</i>
+                    Profile Settings
+                  </button>
+                  <button class="menu-item" (click)="logout()">
+                    <i class="material-icons">logout</i>
+                    Sign Out
+                  </button>
+                </div>
+              }
+            }
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Content Area -->
+      <main class="main-content">
+        <router-outlet></router-outlet>
+      </main>
+    </div>

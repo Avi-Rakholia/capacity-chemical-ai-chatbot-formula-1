@@ -1,7 +1,7 @@
 import { Component, signal, inject, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { SupabaseService } from './services/supabase.service';
-import { AuthInitService } from './services/auth-init.service';
+import { SupabaseService } from './core/services/supabase.service';
+import { AuthInitService } from './core/services/auth-init.service';
 import { LoadingComponent } from './shared/components/loading.component';
 
 @Component({

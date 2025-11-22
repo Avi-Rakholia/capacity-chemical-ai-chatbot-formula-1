@@ -1,56 +1,22 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { SupabaseService, AuthUser } from '../../services/supabase.service';
+import { SupabaseService, AuthUser } from '../../core/services/supabase.service';
+
+interface DashboardCard {
+  title: string;
+  description: string;
+  icon: string;
+  route: string;
+  color: string;
+  bgColor: string;
+}
 
 @Component({
   selector: 'app-dashboard',
   imports: [CommonModule],
-  template: `
-    <div class="container-fluid">
-      <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
-        <div class="container-fluid">
-          <a class="navbar-brand" href="#">
-            <img src="assets/capacity-chemical-logo.svg" alt="Logo" height="40" />
-          </a>
-          <div class="navbar-nav ms-auto">
-            @if (currentUser()) {
-              <div class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                  {{ currentUser()!.email }}
-                </a>
-                <ul class="dropdown-menu">
-                  <li><a class="dropdown-item" href="#" (click)="logout()">Logout</a></li>
-                </ul>
-              </div>
-            }
-          </div>
-        </div>
-      </nav>
-
-      <div class="row">
-        <div class="col-md-12">
-          <div class="card">
-            <div class="card-body">
-              <h2 class="card-title">Welcome to Your Dashboard</h2>
-              @if (currentUser()) {
-                <div class="mb-3">
-                  <p><strong>Email:</strong> {{ currentUser()!.email }}</p>
-                  <p><strong>Role:</strong> {{ currentUser()!.role }}</p>
-                  <p><strong>User ID:</strong> {{ currentUser()!.id }}</p>
-                </div>
-              }
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  `,
-  styles: [`
-    .navbar-brand img {
-      max-height: 40px;
-    }
-  `]
+  templateUrl: './dashboard.component.html',
+  styleUrls: ['./dashboard.component.scss']
 })
 export class DashboardComponent implements OnInit {
   private supabaseService = inject(SupabaseService);
@@ -58,25 +24,80 @@ export class DashboardComponent implements OnInit {
 
   currentUser = signal<AuthUser | null>(null);
 
+  dashboardCards = computed<DashboardCard[]>(() => {
+    const user = this.currentUser();
+    const isAdmin = user?.role === 'nsight' || user?.role === 'capacity';
+
+    const baseCards: DashboardCard[] = [
+      {
+        title: 'AI Chatbot',
+        description: 'Interact with our intelligent chemical assistant',
+        icon: 'chat',
+        route: '/home/chatbot',
+        color: '#2196f3',
+        bgColor: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)'
+      },
+      {
+        title: 'Resources',
+        description: 'Access chemical databases and documentation',
+        icon: 'folder',
+        route: '/home/resources',
+        color: '#4caf50',
+        bgColor: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)'
+      },
+      {
+        title: 'Pending Approvals',
+        description: 'Review and manage pending requests',
+        icon: 'assignment',
+        route: '/home/approvals',
+        color: '#ff9800',
+        bgColor: 'linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%)'
+      }
+    ];
+
+    if (isAdmin) {
+      baseCards.push(
+        {
+          title: 'User Management',
+          description: 'Manage users and permissions',
+          icon: 'group',
+          route: '/admin/users',
+          color: '#9c27b0',
+          bgColor: 'linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%)'
+        },
+        {
+          title: 'Analytics Dashboard',
+          description: 'View system analytics and reports',
+          icon: 'analytics',
+          route: '/admin/analytics',
+          color: '#f44336',
+          bgColor: 'linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%)'
+        }
+      );
+    }
+
+    return baseCards;
+  });
+
   ngOnInit() {
     // Subscribe to current user changes
     this.supabaseService.currentUser$.subscribe(user => {
       this.currentUser.set(user);
-      
-      // Redirect to login if not authenticated
-      if (!user) {
-        this.router.navigate(['/login']);
-      }
     });
   }
 
-  async logout() {
-    const { error } = await this.supabaseService.signOut();
+  navigateToCard(card: DashboardCard): void {
+    this.router.navigate([card.route]);
+  }
+
+  getUserDisplayName(): string {
+    const user = this.currentUser();
+    if (!user) return 'User';
     
-    if (!error) {
-      this.router.navigate(['/login']);
-    } else {
-      console.error('Logout error:', error);
-    }
+    // Try to get username from metadata, fallback to email prefix
+    const username = user.metadata?.username || user.metadata?.display_name;
+    if (username) return username;
+    
+    return user.email?.split('@')[0] || 'User';
   }
 }
