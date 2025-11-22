@@ -13,8 +13,7 @@ export const routes: Routes = [
     {
         path: '',
         pathMatch: 'full',
-        loadComponent: () => import('./pages/dashboard/dashboard.component').then(m => m.DashboardComponent),
-        canActivate: [authGuard]
+        redirectTo: '/home/dashboard'
     },
     {
         path: LoginPath.login,
@@ -31,9 +30,41 @@ export const routes: Routes = [
         component: AuthCallbackComponent
     },
     {
+        path: 'home',
+        loadComponent: () => import('./pages/home/home.component').then(m => m.HomeComponent),
+        canActivate: [authGuard],
+        children: [
+            {
+                path: 'dashboard',
+                loadComponent: () => import('./pages/dashboard/dashboard.component').then(m => m.DashboardComponent)
+            },
+            {
+                path: 'chatbot',
+                loadComponent: () => import('./shared/components/placeholder.component').then(m => m.PlaceholderComponent)
+            },
+            {
+                path: 'resources',
+                loadComponent: () => import('./shared/components/placeholder.component').then(m => m.PlaceholderComponent)
+            },
+            {
+                path: 'approvals',
+                loadComponent: () => import('./shared/components/placeholder.component').then(m => m.PlaceholderComponent)
+            },
+            {
+                path: 'settings',
+                loadComponent: () => import('./shared/components/placeholder.component').then(m => m.PlaceholderComponent)
+            },
+            {
+                path: '',
+                redirectTo: 'dashboard',
+                pathMatch: 'full'
+            }
+        ]
+    },
+    {
         path: 'dashboard',
-        loadComponent: () => import('./pages/dashboard/dashboard.component').then(m => m.DashboardComponent),
-        canActivate: [authGuard]
+        redirectTo: '/home/dashboard',
+        pathMatch: 'full'
     },
     {
         path: 'setup-guide',
@@ -41,8 +72,23 @@ export const routes: Routes = [
     },
     {
         path: 'admin',
-        loadComponent: () => import('./pages/dashboard/dashboard.component').then(m => m.DashboardComponent),
-        canActivate: [roleGuard(['nsight', 'capacity'])]
+        loadComponent: () => import('./pages/home/home.component').then(m => m.HomeComponent),
+        canActivate: [roleGuard(['nsight', 'capacity'])],
+        children: [
+            {
+                path: 'users',
+                loadComponent: () => import('./shared/components/placeholder.component').then(m => m.PlaceholderComponent)
+            },
+            {
+                path: 'analytics',
+                loadComponent: () => import('./shared/components/placeholder.component').then(m => m.PlaceholderComponent)
+            },
+            {
+                path: '',
+                redirectTo: 'users',
+                pathMatch: 'full'
+            }
+        ]
     },
     {
         path: '**',
