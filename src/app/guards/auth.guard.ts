@@ -2,8 +2,8 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { filter, take, switchMap, timeout, catchError } from 'rxjs/operators';
-import { SupabaseService } from '../services/supabase.service';
-import { AuthInitService } from '../services/auth-init.service';
+import { SupabaseService } from '../core/services/supabase.service';
+import { AuthInitService } from '../core/services/auth-init.service';
 
 export const authGuard: CanActivateFn = (route, state) => {
   const supabaseService = inject(SupabaseService);

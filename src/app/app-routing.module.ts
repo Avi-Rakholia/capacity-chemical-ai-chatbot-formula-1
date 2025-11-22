@@ -2,9 +2,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { LoginPath } from './shared/path-enums/login-path';
 import { CreateAccountPath } from './shared/path-enums/create-account-path';
-import { LoginComponent } from './pages/login/login.component';
-import { CreateAccount } from './pages/create-account/create-account.component';
-import { AuthCallbackComponent } from './pages/auth-callback/auth-callback.component';
+import { AuthCallbackComponent } from './auth/auth-callback/auth-callback.component';
 import { authGuard } from './guards/auth.guard';
 import { roleGuard } from './guards/role.guard';
 
@@ -18,12 +16,12 @@ export const routes: Routes = [
     {
         path: LoginPath.login,
         pathMatch: 'full',
-        component: LoginComponent
+        loadChildren: () => import('./pages/login/login.module').then(m => m.LoginModule)
     },
     {
         path: CreateAccountPath.createAccount,
         pathMatch: 'full',
-        component: CreateAccount
+        loadChildren: () => import('./pages/create-account/create-account.module').then(m => m.CreateAccountModule)
     },
     {
         path: 'auth/callback',
@@ -31,35 +29,8 @@ export const routes: Routes = [
     },
     {
         path: 'home',
-        loadComponent: () => import('./pages/home/home.component').then(m => m.HomeComponent),
         canActivate: [authGuard],
-        children: [
-            {
-                path: 'dashboard',
-                loadComponent: () => import('./pages/dashboard/dashboard.component').then(m => m.DashboardComponent)
-            },
-            {
-                path: 'chatbot',
-                loadComponent: () => import('./shared/components/placeholder.component').then(m => m.PlaceholderComponent)
-            },
-            {
-                path: 'resources',
-                loadComponent: () => import('./shared/components/placeholder.component').then(m => m.PlaceholderComponent)
-            },
-            {
-                path: 'approvals',
-                loadComponent: () => import('./shared/components/placeholder.component').then(m => m.PlaceholderComponent)
-            },
-            {
-                path: 'settings',
-                loadComponent: () => import('./shared/components/placeholder.component').then(m => m.PlaceholderComponent)
-            },
-            {
-                path: '',
-                redirectTo: 'dashboard',
-                pathMatch: 'full'
-            }
-        ]
+        loadChildren: () => import('./pages/side-bar/side-bar.module').then(m => m.SideBarModule)
     },
     {
         path: 'dashboard',
@@ -68,27 +39,12 @@ export const routes: Routes = [
     },
     {
         path: 'setup-guide',
-        loadComponent: () => import('./pages/setup-guide/setup-guide.component').then(m => m.SetupGuideComponent)
+        loadChildren: () => import('./pages/setup-guide/setup-guide.module').then(m => m.SetupGuideModule)
     },
     {
         path: 'admin',
-        loadComponent: () => import('./pages/home/home.component').then(m => m.HomeComponent),
         canActivate: [roleGuard(['nsight', 'capacity'])],
-        children: [
-            {
-                path: 'users',
-                loadComponent: () => import('./shared/components/placeholder.component').then(m => m.PlaceholderComponent)
-            },
-            {
-                path: 'analytics',
-                loadComponent: () => import('./shared/components/placeholder.component').then(m => m.PlaceholderComponent)
-            },
-            {
-                path: '',
-                redirectTo: 'users',
-                pathMatch: 'full'
-            }
-        ]
+        loadChildren: () => import('./pages/side-bar/side-bar.module').then(m => m.SideBarModule)
     },
     {
         path: '**',

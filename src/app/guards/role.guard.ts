@@ -2,8 +2,8 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { filter, take, switchMap, timeout, catchError } from 'rxjs/operators';
-import { SupabaseService, AuthUser } from '../services/supabase.service';
-import { AuthInitService } from '../services/auth-init.service';
+import { SupabaseService, AuthUser } from '../core/services/supabase.service';
+import { AuthInitService } from '../core/services/auth-init.service';
 
 export const roleGuard = (allowedRoles: string[]): CanActivateFn => {
   return (route, state) => {
