@@ -89,7 +89,7 @@ export class LoginComponent {
   }
 
   navigateToCreateAccount(): void {
-    this.router.navigate([CreateAccountPath.createAccount]);
+    this.router.navigate([`/${CreateAccountPath.createAccount}`]);
   }
 
   togglePasswordVisibility(): void {

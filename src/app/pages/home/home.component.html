@@ -1,0 +1,14 @@
+<div class="dashboard-container container">
+  <div class="grid-2x3">
+    @for (card of dashboardCards(); track card.title) {
+    <div 
+      class="dashboard-card"
+      (click)="navigateToCard(card)"
+    >
+      <i class="material-icons card-icon">{{card.icon}}</i>
+      <div class="card-title">{{ card.title }}</div>
+    </div>
+  }
+  </div>
+</div>
+

@@ -3,6 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { LoginPath } from './shared/path-enums/login-path';
 import { CreateAccountPath } from './shared/path-enums/create-account-path';
 import { AuthCallbackComponent } from './auth/auth-callback/auth-callback.component';
+import { CreateAccount } from './pages/create-account/create-account.component';
 import { authGuard } from './guards/auth.guard';
 import { roleGuard } from './guards/role.guard';
 
@@ -15,13 +16,11 @@ export const routes: Routes = [
     },
     {
         path: LoginPath.login,
-        pathMatch: 'full',
-        loadChildren: () => import('./pages/login/login.module').then(m => m.LoginModule)
+        loadChildren: () => import('./pages/auth-pages/auth-pages.module').then(m => m.AuthPagesModule)
     },
     {
         path: CreateAccountPath.createAccount,
-        pathMatch: 'full',
-        loadChildren: () => import('./pages/create-account/create-account.module').then(m => m.CreateAccountModule)
+        component: CreateAccount
     },
     {
         path: 'auth/callback',
@@ -30,7 +29,7 @@ export const routes: Routes = [
     {
         path: 'home',
         canActivate: [authGuard],
-        loadChildren: () => import('./pages/side-bar/side-bar.module').then(m => m.SideBarModule)
+        loadChildren: () => import('./pages/main-pages/main-pages.module').then(m => m.MainPagesModule)
     },
     {
         path: 'dashboard',
@@ -44,7 +43,7 @@ export const routes: Routes = [
     {
         path: 'admin',
         canActivate: [roleGuard(['nsight', 'capacity'])],
-        loadChildren: () => import('./pages/side-bar/side-bar.module').then(m => m.SideBarModule)
+        loadChildren: () => import('./pages/main-pages/main-pages.module').then(m => m.MainPagesModule)
     },
     {
         path: '**',

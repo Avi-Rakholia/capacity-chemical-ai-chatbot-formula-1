@@ -5,18 +5,16 @@ import { SupabaseService, AuthUser } from '../../core/services/supabase.service'
 
 interface DashboardCard {
   title: string;
-  description: string;
   icon: string;
   route: string;
   color: string;
-  bgColor: string;
 }
 
 @Component({
-  selector: 'app-dashboard',
+  selector: 'app-home',
   imports: [CommonModule],
-  templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.scss']
+  templateUrl: './home.component.html',
+  styleUrls: ['./home.component.scss']
 })
 export class DashboardComponent implements OnInit {
   private supabaseService = inject(SupabaseService);
@@ -30,28 +28,28 @@ export class DashboardComponent implements OnInit {
 
     const baseCards: DashboardCard[] = [
       {
-        title: 'AI Chatbot',
-        description: 'Interact with our intelligent chemical assistant',
+        title: 'Formula Chatbot',
         icon: 'chat',
         route: '/home/chatbot',
-        color: '#2196f3',
-        bgColor: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)'
+        color: '#f4f4f4'
       },
       {
         title: 'Resources',
-        description: 'Access chemical databases and documentation',
         icon: 'folder',
         route: '/home/resources',
-        color: '#4caf50',
-        bgColor: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)'
+        color: '#f4f4f4'
       },
       {
         title: 'Pending Approvals',
-        description: 'Review and manage pending requests',
         icon: 'assignment',
         route: '/home/approvals',
-        color: '#ff9800',
-        bgColor: 'linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%)'
+        color: '#f4f4f4'
+      },
+            {
+        title: 'Config Settings',
+        icon: 'settings',
+        route: '/home/settings',
+        color: '#f4f4f4'
       }
     ];
 
@@ -59,19 +57,15 @@ export class DashboardComponent implements OnInit {
       baseCards.push(
         {
           title: 'User Management',
-          description: 'Manage users and permissions',
           icon: 'group',
           route: '/admin/users',
-          color: '#9c27b0',
-          bgColor: 'linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%)'
+          color: '#f4f4f4'
         },
         {
           title: 'Analytics Dashboard',
-          description: 'View system analytics and reports',
           icon: 'analytics',
           route: '/admin/analytics',
-          color: '#f44336',
-          bgColor: 'linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%)'
+          color: '#f4f4f4'
         }
       );
     }
@@ -86,7 +80,7 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  navigateToCard(card: DashboardCard): void {
+    navigateToCard(card: DashboardCard): void {
     this.router.navigate([card.route]);
   }
 

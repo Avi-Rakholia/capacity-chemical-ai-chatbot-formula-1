@@ -1,125 +1,205 @@
-<div class="home-layout">
-      <!-- Sidebar -->
-      <aside class="sidebar">
-        <div class="sidebar-header">
-          <div class="logo">
-            <img src="assets/capacity-chemical-logo.svg" alt="Capacity Chemical" class="logo-img">
-          </div>
-        </div>
+<div class="d-flex vh-100 position-relative overflow-hidden">
+  <!-- Overlay for mobile -->
+  <div
+    class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50"
+    *ngIf="isOpen() && isMobileView"
+    (click)="setOpen(false)"
+    aria-hidden="true"
+    style="z-index: 1040;"
+  ></div>
 
-        <nav class="sidebar-nav">
-          <button 
-            class="nav-item"
-            [class.active]="activeRoute() === 'dashboard'"
-            (click)="navigateTo('/home/dashboard')"
-          >
-            <i class="material-icons">home</i>
-            <span>Dashboard</span>
-          </button>
-
-          <button 
-            class="nav-item"
-            [class.active]="activeRoute() === 'chatbot'"
-            (click)="navigateTo('/home/chatbot')"
-          >
-            <i class="material-icons">chat</i>
-            <span>AI Chatbot</span>
-          </button>
-
-          <button 
-            class="nav-item"
-            [class.active]="activeRoute() === 'resources'"
-            (click)="navigateTo('/home/resources')"
-          >
-            <i class="material-icons">folder</i>
-            <span>Resources</span>
-          </button>
-
-          <button 
-            class="nav-item"
-            [class.active]="activeRoute() === 'approvals'"
-            (click)="navigateTo('/home/approvals')"
-          >
-            <i class="material-icons">assignment</i>
-            <span>Pending Approvals</span>
-          </button>
-
-          @if (isAdmin()) {
-            <button 
-              class="nav-item"
-              [class.active]="activeRoute() === 'users'"
-              (click)="navigateTo('/admin/users')"
-            >
-              <i class="material-icons">group</i>
-              <span>User Management</span>
-            </button>
-
-            <button 
-              class="nav-item"
-              [class.active]="activeRoute() === 'analytics'"
-              (click)="navigateTo('/admin/analytics')"
-            >
-              <i class="material-icons">analytics</i>
-              <span>Analytics</span>
-            </button>
+  <!-- Sidebar -->
+  <aside
+    class="d-flex flex-column shadow-sm position-relative"
+    [class.collapsed]="!isOpen()"
+    [class.w-72]="!isOpen()"
+    [class.w-280]="isOpen()"
+    [attr.aria-expanded]="isOpen()"
+    role="navigation"
+    style="transition: width 0.24s cubic-bezier(.2,.9,.2,1); min-width: 72px; z-index:1050;"
+  >
+    <!-- Top area with logo and toggle -->
+    <div class="d-flex align-items-center position-relative p-3 border-bottom sidebar-header">
+      <div class="flex-grow-1 d-flex align-items-center gap-2">
+        <div class="logo" title="Capacity Chemical">
+          @if (isOpen()) {
+          <img [src]="logoUrlExpanded" alt="Capacity Chemical" class="img-fluid" [class.small-logo]="!isOpen()" />
+          } @else {
+            <img [src]="logoUrlCollapsed" alt="Capacity Chemical" class="img-fluid small-logo" />
           }
-
-          <button 
-            class="nav-item"
-            [class.active]="activeRoute() === 'settings'"
-            (click)="navigateTo('/home/settings')"
-          >
-            <i class="material-icons">settings</i>
-            <span>Settings</span>
-          </button>
-        </nav>
-
-        <!-- User Profile Section -->
-        <div class="sidebar-footer">
-          <div class="profile-section">
-            @if (currentUser()) {
-              <div class="profile-info">
-                <div class="avatar">
-                  <img 
-                    [src]="getUserAvatar()" 
-                    [alt]="currentUser()!.email"
-                    class="avatar-img"
-                  />
-                </div>
-                <div class="user-details">
-                  <div class="user-name">{{ getUserDisplayName() }}</div>
-                  <div class="user-role">{{ getRoleDisplayName() }}</div>
-                </div>
-                <div class="profile-actions">
-                  <button 
-                    class="profile-menu-btn"
-                    (click)="toggleProfileMenu()"
-                    [class.active]="profileMenuOpen()"
-                  >
-                    <i class="material-icons">more_vert</i>
-                  </button>
-                </div>
-              </div>
-
-              @if (profileMenuOpen()) {
-                <div class="profile-menu">
-                  <button class="menu-item" (click)="navigateTo('/home/settings')">
-                    <i class="material-icons">person</i>
-                    Profile Settings
-                  </button>
-                  <button class="menu-item" (click)="logout()">
-                    <i class="material-icons">logout</i>
-                    Sign Out
-                  </button>
-                </div>
-              }
-            }
-          </div>
         </div>
-      </aside>
-
-      <!-- Main Content Area -->
-      <main class="main-content">
-        <router-outlet></router-outlet>
-      </main>
+      </div>
+      <button
+        class="btn btn-white border rounded-circle shadow-sm chevron-btn"
+        (click)="toggleOpen()"
+        aria-label="{{ isOpen() ? 'Collapse sidebar' : 'Expand sidebar' }}"
+        [attr.aria-pressed]="!isOpen()"
+        style="width:32px; height:32px;"
+      >
+        <i class="material-icons">{{ isOpen() ? 'chevron_left' : 'chevron_right' }}</i>
+      </button>
     </div>
+
+    <!-- Navigation -->
+    <nav class="flex-grow-1 overflow-auto py-2 px-1" role="menubar" aria-label="Main navigation">
+      <div class="card m-3">
+      <button
+        class="btn d-flex align-items-center w-100 gap-2 rounded-2"
+        [class.active]="activeRoute() === 'dashboard'"
+        (click)="navigateTo('/home/dashboard')"
+        [title]="!isOpen() ? 'Dashboard' : null"
+        role="menuitem"
+      >
+        <i class="material-icons">home</i>
+        @if (isOpen()) {
+        <span class="flex-grow-1 text-truncate">Home</span>
+        }
+      </button>
+      </div>
+
+      <div class="card m-3">
+      <button
+        class="btn d-flex align-items-center w-100 gap-2 rounded-2"
+        [class.active]="activeRoute() === 'chatbot'"
+        (click)="navigateTo('/home/chatbot')"
+        [title]="!isOpen() ? 'AI Chatbot' : null"
+        role="menuitem"
+      >
+        <i class="material-icons">chat</i>
+        @if (isOpen()) {
+        <span class="flex-grow-1 text-truncate">Chatbot</span>
+        }
+      </button>
+      </div>
+
+      <div class="card m-3">
+      <button
+        class="btn d-flex align-items-center w-100 gap-2 rounded-2"
+        [class.active]="activeRoute() === 'resources'"
+        (click)="navigateTo('/home/resources')"
+        [title]="!isOpen() ? 'Resources' : null"
+        role="menuitem"
+      >
+        <i class="material-icons">folder</i>
+        @if (isOpen()) {
+        <span class="flex-grow-1 text-truncate">Resources</span>
+        }
+      </button>
+      </div>
+
+      <div class="card m-3">
+      <button
+        class="btn d-flex align-items-center w-100 gap-2 rounded-2"
+        [class.active]="activeRoute() === 'approvals'"
+        (click)="navigateTo('/home/approvals')"
+        [title]="!isOpen() ? 'Pending Approvals' : null"
+        role="menuitem"
+      >
+        <i class="material-icons">assignment</i>
+        @if (isOpen()) {
+        <span class="flex-grow-1 text-truncate">Pending Approvals</span>
+        }
+      </button>
+      </div>
+
+      <!-- Admin section -->
+       @if (isAdmin()) {
+      <ng-container>
+        <div class="card m-3">
+        <button
+          class="btn d-flex align-items-center w-100 gap-2 rounded-2"
+          [class.active]="activeRoute() === 'users'"
+          (click)="navigateTo('/admin/users')"
+          [title]="!isOpen() ? 'User Management' : null"
+          role="menuitem"
+        >
+          <i class="material-icons">group</i>
+          @if (isOpen()) {
+          <span class="flex-grow-1 text-truncate">User Management</span>
+          }
+        </button>
+        </div>
+
+        <div class="card m-3">
+        <button
+          class="btn d-flex align-items-center w-100 gap-2 rounded-2"
+          [class.active]="activeRoute() === 'analytics'"
+          (click)="navigateTo('/admin/analytics')"
+          [title]="!isOpen() ? 'Analytics' : null"
+          role="menuitem"
+        >
+          <i class="material-icons">analytics</i>
+          @if (isOpen()) {
+          <span class="flex-grow-1 text-truncate">Analytics</span>
+          }
+        </button>
+        </div>
+      </ng-container>
+    }
+
+      <div class="card m-3">
+      <button
+        class="btn d-flex align-items-center w-100 gap-2 rounded-2"
+        [class.active]="activeRoute() === 'settings'"
+        (click)="navigateTo('/home/settings')"
+        [title]="!isOpen() ? 'Settings' : null"
+        role="menuitem"
+      >
+        <i class="material-icons">settings</i>
+        @if (isOpen()) {
+        <span class="flex-grow-1 text-truncate">Settings</span>
+        }
+      </button>
+      </div>
+    </nav>
+
+    <!-- User Profile Section -->
+    <div class="card m-3 mb-5 border-top position-relative profile-section">
+      <div class="d-flex align-items-center gap-2 p-2 bg-white rounded-2 shadow-sm profile-container" (click)="toggleProfileMenu()">
+        <div class="flex-shrink-0 rounded-circle overflow-hidden avatar-wrapper" style="width:44px; height:44px;">
+          <img [src]="getUserAvatar()" [alt]="currentUser()!.email" class="img-fluid w-100 h-100" />
+        </div>
+        @if (isOpen()) {
+        <div class="flex-grow-1 text-truncate">
+          <div class="fw-bold fs-6">{{ getUserDisplayName() }}</div>
+          <div class="text-muted small text-capitalize">{{ getRoleDisplayName() }}</div>
+        </div>
+        <button
+          class="btn btn-sm p-1"
+          [class.active]="profileMenuOpen()"
+          aria-haspopup="true"
+          [attr.aria-expanded]="profileMenuOpen()"
+          title="More"
+        >
+          <i class="material-icons">arrow_circle_up</i>
+        </button>
+      }
+      </div>
+      @if (profileMenuOpen() && isOpen()) {
+      <div class="position-absolute bottom-100 start-0 w-100 bg-white rounded-2 shadow p-1 profile-menu">
+        <button class="btn d-flex align-items-center w-100 gap-2 rounded-2" (click)="navigateTo('/home/settings')">
+          <i class="material-icons">person</i> Profile Settings
+        </button>
+        <button class="btn d-flex align-items-center w-100 gap-2 rounded-2" (click)="logout()">
+          <i class="material-icons">logout</i> Sign Out
+        </button>
+      </div>
+    }
+      @if (profileMenuOpen() && !isOpen()) {
+      <div class="position-absolute bottom-100 start-50 translate-middle-x bg-white rounded-2 shadow p-2 profile-menu-collapsed">
+        <button class="btn d-flex align-items-center justify-content-center p-2 rounded-2 mb-2" (click)="navigateTo('/home/settings')" title="Profile Settings">
+          <i class="material-icons">person</i>
+        </button>
+        <button class="btn d-flex align-items-center justify-content-center p-2 rounded-2" (click)="logout()" title="Sign Out">
+          <i class="material-icons">logout</i>
+        </button>
+      </div>
+    }
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="flex-grow-1 overflow-auto">
+    <router-outlet></router-outlet>
+  </main>
+</div>
