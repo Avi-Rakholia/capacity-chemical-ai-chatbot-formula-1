@@ -5,7 +5,7 @@ import { SupabaseService, AuthUser } from '../../core/services/supabase.service'
 
 interface DashboardCard {
   title: string;
-  icon: string;
+  iconUrl: string;
   route: string;
   color: string;
 }
@@ -29,25 +29,25 @@ export class DashboardComponent implements OnInit {
     const baseCards: DashboardCard[] = [
       {
         title: 'Formula Chatbot',
-        icon: 'chat',
+        iconUrl: '/assets/chatbot.svg',
         route: '/home/chatbot',
         color: '#f4f4f4'
       },
       {
         title: 'Resources',
-        icon: 'folder',
+        iconUrl: '/assets/resources.svg',
         route: '/home/resources',
         color: '#f4f4f4'
       },
       {
         title: 'Pending Approvals',
-        icon: 'assignment',
+        iconUrl: '/assets/pending_approvals.svg',
         route: '/home/approvals',
         color: '#f4f4f4'
       },
             {
         title: 'Config Settings',
-        icon: 'settings',
+        iconUrl: '/assets/settings.svg',
         route: '/home/settings',
         color: '#f4f4f4'
       }
@@ -57,13 +57,13 @@ export class DashboardComponent implements OnInit {
       baseCards.push(
         {
           title: 'User Management',
-          icon: 'group',
+          iconUrl: '/assets/users.svg',
           route: '/admin/users',
           color: '#f4f4f4'
         },
         {
           title: 'Analytics Dashboard',
-          icon: 'analytics',
+          iconUrl: '/assets/analytics.svg',
           route: '/admin/analytics',
           color: '#f4f4f4'
         }

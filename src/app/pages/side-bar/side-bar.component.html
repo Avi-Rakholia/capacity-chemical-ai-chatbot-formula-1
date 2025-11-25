@@ -50,7 +50,7 @@
         [title]="!isOpen() ? 'Dashboard' : null"
         role="menuitem"
       >
-        <i class="material-icons">home</i>
+        <img [src]="'/assets/sidebar_home.svg'" alt="Home" class="img-fluid side-bar-logo" />
         @if (isOpen()) {
         <span class="flex-grow-1 text-truncate">Home</span>
         }
@@ -65,7 +65,7 @@
         [title]="!isOpen() ? 'AI Chatbot' : null"
         role="menuitem"
       >
-        <i class="material-icons">chat</i>
+        <img [src]="'/assets/sidebar_chatbot.svg'" alt="Chatbot" class="img-fluid side-bar-logo" />
         @if (isOpen()) {
         <span class="flex-grow-1 text-truncate">Chatbot</span>
         }
@@ -80,7 +80,7 @@
         [title]="!isOpen() ? 'Resources' : null"
         role="menuitem"
       >
-        <i class="material-icons">folder</i>
+        <img [src]="'/assets/sidebar_resources.svg'" alt="Resources" class="img-fluid side-bar-logo" />
         @if (isOpen()) {
         <span class="flex-grow-1 text-truncate">Resources</span>
         }
@@ -95,7 +95,7 @@
         [title]="!isOpen() ? 'Pending Approvals' : null"
         role="menuitem"
       >
-        <i class="material-icons">assignment</i>
+        <img [src]="'/assets/sidebar_pending_approvals.svg'" alt="Pending Approvals" class="img-fluid side-bar-logo" />
         @if (isOpen()) {
         <span class="flex-grow-1 text-truncate">Pending Approvals</span>
         }
@@ -113,7 +113,7 @@
           [title]="!isOpen() ? 'User Management' : null"
           role="menuitem"
         >
-          <i class="material-icons">group</i>
+          <img [src]="'/assets/sidebar_users.svg'" alt="User Management" class="img-fluid side-bar-logo" />
           @if (isOpen()) {
           <span class="flex-grow-1 text-truncate">User Management</span>
           }
@@ -128,7 +128,7 @@
           [title]="!isOpen() ? 'Analytics' : null"
           role="menuitem"
         >
-          <i class="material-icons">analytics</i>
+          <img [src]="'/assets/sidebar_analytics.svg'" alt="Analytics" class="img-fluid side-bar-logo" />
           @if (isOpen()) {
           <span class="flex-grow-1 text-truncate">Analytics</span>
           }
@@ -145,7 +145,7 @@
         [title]="!isOpen() ? 'Settings' : null"
         role="menuitem"
       >
-        <i class="material-icons">settings</i>
+        <img [src]="'/assets/sidebar_settings.svg'" alt="Settings" class="img-fluid side-bar-logo" />
         @if (isOpen()) {
         <span class="flex-grow-1 text-truncate">Settings</span>
         }
@@ -154,7 +154,7 @@
     </nav>
 
     <!-- User Profile Section -->
-    <div class="card m-3 mb-5 border-top position-relative profile-section">
+    <div class="card m-3 mb-4 border-top position-relative profile-section">
       <div class="d-flex align-items-center gap-2 p-2 bg-white rounded-2 shadow-sm profile-container" (click)="toggleProfileMenu()">
         <div class="flex-shrink-0 rounded-circle overflow-hidden avatar-wrapper" style="width:44px; height:44px;">
           <img [src]="getUserAvatar()" [alt]="currentUser()!.email" class="img-fluid w-100 h-100" />

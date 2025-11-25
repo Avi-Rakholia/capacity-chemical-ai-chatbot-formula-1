@@ -45,6 +45,11 @@ aside {
     opacity: 0.95;
     transform: translateX(-2px);
   }
+
+  .side-bar-logo {
+    width: 24px; 
+    height: 24px;
+  }
 }
 
 /* Navigation buttons */
@@ -98,13 +103,6 @@ aside.collapsed .card {
 
 aside.collapsed nav .card {
   margin: 4px 0 !important;
-}
-
-/* Profile section */
-aside .profile-section {
-  padding: 0 !important;
-  margin-left: 0 !important;
-  margin-right: 0 !important;
 }
 
 aside.collapsed .profile-section {
