@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, Validators, FormGroup } from '@angula
 import { Router } from '@angular/router';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { LoginPath } from 'src/app/shared/path-enums/login-path';
+import { PasswordValidators } from '../../shared/validators/password.validator';
 
 @Component({
   selector: 'app-create-account',
@@ -28,19 +29,9 @@ export class CreateAccount {
       role: ['capacity', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       username: ['', [Validators.required, Validators.minLength(3)]],
-      password: ['', [Validators.required, Validators.minLength(8)]],
+      password: ['', [Validators.required, PasswordValidators.strongPassword()]],
       confirmPassword: ['', Validators.required]
-    }, { validators: this.passwordMatchValidator });
-  }
-
-  passwordMatchValidator(form: FormGroup) {
-    const password = form.get('password');
-    const confirmPassword = form.get('confirmPassword');
-    
-    if (password && confirmPassword && password.value !== confirmPassword.value) {
-      return { passwordMismatch: true };
-    }
-    return null;
+    }, { validators: PasswordValidators.passwordsMatch('password', 'confirmPassword') });
   }
 
   async onSubmit(): Promise<void> {
