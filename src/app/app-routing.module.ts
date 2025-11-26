@@ -4,6 +4,7 @@ import { LoginPath } from './shared/path-enums/login-path';
 import { CreateAccountPath } from './shared/path-enums/create-account-path';
 import { LoginComponent } from './pages/login/login.component';
 import { CreateAccount } from './pages/create-account/create-account.component';
+import { PendingApprovalsComponent } from './pages/pending-approval/pending-approvals.component';
 
 
 export const routes: Routes = [
@@ -21,7 +22,14 @@ export const routes: Routes = [
         path: CreateAccountPath.createAccount,
         pathMatch: 'full',
         component: CreateAccount
-    }
+    },
+
+    {
+    path: 'pending-approval',
+    pathMatch: 'full',
+    component: PendingApprovalsComponent
+   }
+
 ];
 
 @NgModule({
