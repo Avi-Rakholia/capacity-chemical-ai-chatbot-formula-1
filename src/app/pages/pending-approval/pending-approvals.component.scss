@@ -17,9 +17,10 @@ $shadow-soft: 0 2px 6px rgba(0, 0, 0, 0.08);
 ----------------------------------------------------- */
 .page {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;              /* full viewport */
   background: $page-bg;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI";
+  overflow: hidden;           /* ❌ no global scrollbars, main handles scroll */
 }
 
 /* -----------------------------------------------------
@@ -33,24 +34,30 @@ $shadow-soft: 0 2px 6px rgba(0, 0, 0, 0.08);
   flex-direction: column;
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
   transition: width 0.25s ease;
+  flex-shrink: 0;             /* don’t shrink on smaller screens */
+}
 
-  &.sidebar--collapsed {
-    width: $sidebar-width-collapsed;
+/* COLLAPSED STATE */
+.sidebar.sidebar--collapsed {
+  width: $sidebar-width-collapsed;
+}
 
-    .sidebar__item-label,
-    .sidebar__profile-info,
-    .sidebar__profile-more {
-      display: none;
-    }
+/* Hide labels & profile text when collapsed */
+.sidebar.sidebar--collapsed .sidebar__item-label,
+.sidebar.sidebar--collapsed .sidebar__profile-info {
+  display: none;
+}
 
-    .sidebar__profile {
-      display: none;
-    }
+.sidebar.sidebar--collapsed .sidebar__profile-more {
+  display: none;
+}
 
-    .sidebar__profile-collapsed {
-      display: flex;
-    }
-  }
+.sidebar.sidebar--collapsed .sidebar__profile {
+  display: none;
+}
+
+.sidebar.sidebar--collapsed .sidebar__profile-collapsed {
+  display: flex;
 }
 
 /* Logo Row */
@@ -65,17 +72,18 @@ $shadow-soft: 0 2px 6px rgba(0, 0, 0, 0.08);
   max-width: 170px;
   height: auto;
 }
-/* Sidebar small logo size */
-.sidebar--collapsed .sidebar__logo {
+
+/* Small logo when collapsed */
+.sidebar.sidebar--collapsed .sidebar__logo {
   max-width: 50px !important;
   height: auto !important;
 }
-
 
 .sidebar__collapse-btn {
   background: none;
   border: none;
   cursor: pointer;
+  padding: 4px;
 }
 
 /* -----------------------------------------------------
@@ -120,20 +128,19 @@ $shadow-soft: 0 2px 6px rgba(0, 0, 0, 0.08);
   box-shadow: 0 0 0 1px #ccc;
 }
 
-.menu-icon--home       { background-image: url("public/assets/icons/Home.png"); }
-.menu-icon--chatbot    { background-image: url("public/assets/icons/Chat.png"); }
-.menu-icon--resources  { background-image: url("public/assets/icons/Resource.png"); }
-.menu-icon--pending    { background-image: url("public/assets/icons/pending.png"); }
-.menu-icon--users      { background-image: url("public/assets/icons/Users.png"); }
-.menu-icon--analytics  { background-image: url("public/assets/icons/Analytics.png"); }
-.menu-icon--settings   { background-image: url("public/assets/icons/Settings.png"); }
-
-
+.menu-icon--home       { background-image: url("/assets/icons/Home.png"); }
+.menu-icon--chatbot    { background-image: url("/assets/icons/Chat.png"); }
+.menu-icon--resources  { background-image: url("/assets/icons/Resource.png"); }
+.menu-icon--pending    { background-image: url("/assets/icons/pending.png"); }
+.menu-icon--users      { background-image: url("/assets/icons/Users.png"); }
+.menu-icon--analytics  { background-image: url("/assets/icons/Analytics.png"); }
+.menu-icon--settings   { background-image: url("/assets/icons/Settings.png"); }
 
 /* -----------------------------------------------------
    PROFILE
 ----------------------------------------------------- */
-.sidebar__profile {
+.sidebar__profile,
+.sidebar__profile-collapsed {
   padding: 10px 12px;
   background: #ffffff;
   border-radius: 10px;
@@ -141,12 +148,23 @@ $shadow-soft: 0 2px 6px rgba(0, 0, 0, 0.08);
   align-items: center;
   gap: 10px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  position: relative;     /* anchor for dropdown */
 }
 
-.sidebar__profile-avatar img {
+.sidebar__profile-collapsed {
+  display: none;
+  justify-content: center;
+}
+
+.sidebar__profile-avatar img,
+.sidebar__profile-collapsed img {
   width: 40px;
   height: 40px;
   border-radius: 999px;
+}
+
+.sidebar__profile-info {
+  flex: 1;
 }
 
 .sidebar__profile-name {
@@ -159,25 +177,31 @@ $shadow-soft: 0 2px 6px rgba(0, 0, 0, 0.08);
   color: $text-muted;
 }
 
-.sidebar__profile-collapsed {
-  display: none;
-  justify-content: center;
-
-  img {
-    width: 40px;
-    height: 40px;
-    border-radius: 999px;
-  }
+.sidebar__profile-more {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+/* Dropdown position when sidebar is collapsed */
+.sidebar.sidebar--collapsed .profile-menu {
+  bottom: 70px !important;    /* lift it above the avatar */
+  left: 110% !important;
+  transform: translateX(-50%);
+  width: 140px;               /* smaller dropdown */
 }
 
+
 /* -----------------------------------------------------
-   MAIN AREA
+   MAIN AREA (ONLY THIS SCROLLS)
 ----------------------------------------------------- */
 .main {
   flex: 1;
   padding: 24px 32px;
   display: flex;
   flex-direction: column;
+  height: 100vh;         /* match page height */
+  overflow-y: auto;      /* ✅ vertical scroll only on right pane */
+  overflow-x: hidden;    /* ❌ no horizontal scroll */
 }
 
 /* -----------------------------------------------------
@@ -187,16 +211,20 @@ $shadow-soft: 0 2px 6px rgba(0, 0, 0, 0.08);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: nowrap;
+  margin-bottom: 16px;
 }
 
 .main__title {
-  font-size: 20px;
-  font-weight: 600;
+  font-size: 28px;
+  font-weight: 700;
+  color: $text-main;
 }
 
 .main__header-right {
   display: flex;
   gap: 12px;
+  align-items: center;
 }
 
 /* Search */
@@ -207,12 +235,15 @@ $shadow-soft: 0 2px 6px rgba(0, 0, 0, 0.08);
   border-radius: 999px;
   border: 1px solid $border-soft;
   background: white;
+  min-width: 260px;
+  box-shadow: $shadow-soft;
 
   input {
     border: none;
     outline: none;
     font-size: 13px;
     margin-left: 6px;
+    width: 100%;
   }
 }
 
@@ -224,15 +255,24 @@ $shadow-soft: 0 2px 6px rgba(0, 0, 0, 0.08);
   border: 1px solid $border-soft;
   background: white;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* -----------------------------------------------------
    HEADER ICONS - EMOJI FALLBACK
 ----------------------------------------------------- */
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .icon--collapse::before     { content: "⬅️"; }
 .icon--expand::before       { content: "➡️"; }
 .icon--search::before       { content: "🔍"; }
-.icon--sort::before         { content: "↕️"; }
+.icon--sort::before         { content: "🔤"; } /* looks like A-Z */
 .icon--approve::before      { content: "✔️"; }
 .icon--reject::before       { content: "❌"; }
 .icon--share::before        { content: "🔗"; }
@@ -287,6 +327,10 @@ $shadow-soft: 0 2px 6px rgba(0, 0, 0, 0.08);
   }
 }
 
+.table__actions-header {
+  text-align: right;
+}
+
 .table__actions {
   text-align: right;
   position: relative;
@@ -336,4 +380,47 @@ $shadow-soft: 0 2px 6px rgba(0, 0, 0, 0.08);
   border-radius: 6px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.18);
   white-space: nowrap;
+}
+
+/* -----------------------------------------------------
+   PROFILE DROPDOWN (ChatGPT-style, only Log out)
+----------------------------------------------------- */
+.profile-menu {
+  position: absolute;
+  bottom: 60px;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  width: 180px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 6px 0;
+  z-index: 20;
+}
+
+.profile-menu--collapsed {
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.profile-menu__item {
+  width: 100%;
+  padding: 8px 14px;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  color: #333;
+
+  &:hover {
+    background: #f0f0f0;
+  }
+}
+
+.profile-menu__icon {
+  font-size: 16px;
 }

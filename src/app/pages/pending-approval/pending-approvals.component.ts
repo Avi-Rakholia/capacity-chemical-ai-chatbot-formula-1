@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
+import { Router } from '@angular/router';
 
 type RequestStatus = 'Pending' | 'Approved' | 'Rejected';
 type TabId = 'all' | 'formulas' | 'quotes';
@@ -21,9 +22,9 @@ interface RequestRow {
 })
 export class PendingApprovalsComponent {
 
-  /* ------------------------------------
-     SIDEBAR COLLAPSE / EXPAND
-  ------------------------------------- */
+  constructor(private router: Router) {}
+
+  /* SIDEBAR COLLAPSE / EXPAND */
   sidebarCollapsed = false;
 
   toggleSidebar() {
@@ -31,29 +32,46 @@ export class PendingApprovalsComponent {
   }
 
   get collapseIconClass(): string {
-  return this.sidebarCollapsed ? 'icon--expand' : 'icon--collapse';
-}
+    return this.sidebarCollapsed ? 'icon--expand' : 'icon--collapse';
+  }
 
-
-  /** Logo changes based on collapse */
   get logoPath(): string {
     return this.sidebarCollapsed
       ? '/assets/logo-small.png'
       : '/assets/logo-big.png';
   }
 
-  /* ------------------------------------
-     TABS
-  ------------------------------------- */
+  /* PROFILE MENU (3-dot) */
+  menuOpen = false;
+
+  toggleMenu(event?: MouseEvent) {
+    event?.stopPropagation();
+    this.menuOpen = !this.menuOpen;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onClickOutside(event: Event) {
+    const target = event.target as HTMLElement;
+    if (target.closest('.sidebar__profile') || target.closest('.sidebar__profile-collapsed')) {
+      return;
+    }
+    if (this.menuOpen) {
+      this.menuOpen = false;
+    }
+  }
+
+  signOut() {
+    this.router.navigate(['/login']);
+  }
+
+  /* TABS */
   activeTab: TabId = 'formulas';
 
   setTab(tab: TabId) {
     this.activeTab = tab;
   }
 
-  /* ------------------------------------
-     SEARCH + SORT
-  ------------------------------------- */
+  /* SEARCH + SORT */
   searchText = '';
   sortAsc = true;
 
@@ -65,59 +83,23 @@ export class PendingApprovalsComponent {
     this.sortAsc = !this.sortAsc;
   }
 
-  /* ------------------------------------
-     TABLE DATA
-  ------------------------------------- */
+  /* TABLE DATA */
   rows: RequestRow[] = [
-    {
-      id: 1,
-      formula: 'aink Lotion Formula',
-      dateRequested: '11-17-2025',
-      dateResponded: '11-17-2025',
-      status: 'Pending',
-    },
-    {
-      id: 2,
-      formula: 'bink Lotion Formula',
-      dateRequested: '11-19-2025',
-      dateResponded: '11-19-2025',
-      status: 'Pending',
-    },
-    {
-      id: 3,
-      formula: 'cink Lotion Formula',
-      dateRequested: '11-11-2025',
-      dateResponded: '11-11-2025',
-      status: 'Approved',
-    },
-    {
-      id: 4,
-      formula: 'Pink Lotion Formula',
-      dateRequested: '11-13-2025',
-      dateResponded: '11-13-2025',
-      status: 'Approved',
-    },
-    {
-      id: 5,
-      formula: 'Pink Lotion Formula',
-      dateRequested: '11-17-2025',
-      dateResponded: '11-17-2025',
-      status: 'Rejected',
-    },
+    { id: 1, formula: 'aink Lotion Formula', dateRequested: '11-17-2025', dateResponded: '11-17-2025', status: 'Pending' },
+    { id: 2, formula: 'bink Lotion Formula', dateRequested: '11-19-2025', dateResponded: '11-19-2025', status: 'Pending' },
+    { id: 3, formula: 'cink Lotion Formula', dateRequested: '11-11-2025', dateResponded: '11-11-2025', status: 'Approved' },
+    { id: 4, formula: 'Pink Lotion Formula', dateRequested: '11-13-2025', dateResponded: '11-13-2025', status: 'Approved' },
+    { id: 5, formula: 'Pink Lotion Formula', dateRequested: '11-17-2025', dateResponded: '11-17-2025', status: 'Rejected' },
   ];
 
-  /* ------------------------------------
-     FILTERED ROWS (TAB + SEARCH + SORT)
-  ------------------------------------- */
+  /* FILTERED ROWS (TAB + SEARCH + SORT) */
   get filteredRows(): RequestRow[] {
     let data = [...this.rows];
 
-    // TAB FILTER
     if (this.activeTab === 'quotes') {
-      data = []; // No quotes for now
+      data = [];
     }
 
-    // SEARCH
     if (this.searchText.trim()) {
       const q = this.searchText.toLowerCase();
       data = data.filter((row) =>
@@ -127,7 +109,6 @@ export class PendingApprovalsComponent {
       );
     }
 
-    // SORT
     data.sort((a, b) =>
       this.sortAsc
         ? a.formula.localeCompare(b.formula)
@@ -137,9 +118,7 @@ export class PendingApprovalsComponent {
     return data;
   }
 
-  /* ------------------------------------
-     ACTION BUTTON LOGIC
-  ------------------------------------- */
+  /* ACTION BUTTONS */
   approve(row: RequestRow) {
     row.status = 'Approved';
   }
@@ -152,9 +131,7 @@ export class PendingApprovalsComponent {
     alert(`Share details for: ${row.formula}`);
   }
 
-  /* ------------------------------------
-     BADGE COLOR CLASSES
-  ------------------------------------- */
+  /* BADGE CLASSES */
   getStatusClass(status: RequestStatus): string {
     return {
       Pending: 'badge--pending',
