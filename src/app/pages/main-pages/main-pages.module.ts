@@ -18,8 +18,8 @@ const routes: Routes = [
       },
       {
         path: 'chatbot',
-        // component: ChatbotComponent
-        loadComponent: () => import('../../shared/components/placeholder.component').then(m => m.PlaceholderComponent)
+        component: ChatbotComponent
+        // loadComponent: () => import('../../shared/components/placeholder.component').then(m => m.PlaceholderComponent)
       },
       {
         path: 'resources',

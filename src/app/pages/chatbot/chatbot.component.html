@@ -1,0 +1,46 @@
+<div class="wrapper">
+
+  <div class="logo"></div>
+
+  <p class="header-text">How can we assist you today?</p>
+  <p class="subtext">
+    Start by searching a new formula, and let the bot do the tedious work.
+    Not sure where to start?
+  </p>
+
+  <div class="card-row">
+    <div class="card">
+      <p class="template-card-header">Search Formula</p>
+      <p class="card-sub-text">Search formula from our formula database…</p>
+    </div>
+
+    <div class="card">
+      <p class="template-card-header">Create Formula</p>
+      <p class="card-sub-text">Create formula from our formula database…</p>
+    </div>
+
+    <div class="card">
+      <p class="template-card-header">Generate Quote</p>
+      <p class="card-sub-text">Search formula from our formula database…</p>
+    </div>
+  </div>
+
+  <!-- Chat messages -->
+  <div class="chat-window">
+    <div *ngFor="let msg of messages" class="chat-bubble">
+      {{ msg }}
+    </div>
+  </div>
+
+  <!-- Input bar -->
+  <div class="input-bar">
+    <input
+      type="text"
+      placeholder="Type your query here..."
+      [(ngModel)]="userMessage"
+      (keyup.enter)="sendMessage()"
+    />
+    <button (click)="sendMessage()">➤</button>
+  </div>
+
+</div>

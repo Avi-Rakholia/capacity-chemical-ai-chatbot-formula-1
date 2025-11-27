@@ -1,17 +1,23 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-chatbot',
   standalone: true,
-  imports: [CommonModule],
-  template: `
-    <div class="chatbot-container">
-      <h1>AI Chatbot</h1>
-      <p>Interact with our intelligent chemical assistant</p>
-    </div>
-  `,
+  imports: [CommonModule,FormsModule],
+  templateUrl: './chatbot.component.html',
   styleUrls: ['./chatbot.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ChatbotComponent {}
+export class ChatbotComponent {
+    messages: string[] = [];
+  userMessage: string = '';
+
+  sendMessage() {
+    if (!this.userMessage.trim()) return;
+
+    this.messages.push(this.userMessage);
+    this.userMessage = '';
+  }
+}
