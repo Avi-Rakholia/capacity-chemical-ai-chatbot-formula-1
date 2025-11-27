@@ -1,10 +1,11 @@
-import { NgModule } from '@angular/core';
+import { Component, NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { LoginPath } from './shared/path-enums/login-path';
 import { CreateAccountPath } from './shared/path-enums/create-account-path';
 import { LoginComponent } from './pages/login/login.component';
 import { CreateAccount } from './pages/create-account/create-account.component';
 import { PendingApprovalsComponent } from './pages/pending-approval/pending-approvals.component';
+import { ResourcesComponent } from './pages/resources/resources.component';
 
 
 export const routes: Routes = [
@@ -28,7 +29,12 @@ export const routes: Routes = [
     path: 'pending-approval',
     pathMatch: 'full',
     component: PendingApprovalsComponent
-   }
+   },
+
+  { path: 'resources',
+   pathMatch: 'full',
+   component: ResourcesComponent
+  }
 
 ];
 

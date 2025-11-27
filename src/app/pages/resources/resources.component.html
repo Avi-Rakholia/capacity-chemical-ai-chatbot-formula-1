@@ -1,0 +1,207 @@
+<div class="page">
+
+  <!-- MOBILE MENU TOGGLE -->
+  <button class="mobile-menu-toggle" (click)="toggleMobileSidebar()">
+    <span class="icon icon--menu"></span>
+  </button>
+
+  <!-- SIDEBAR OVERLAY (Mobile) -->
+  <div 
+    class="sidebar-overlay" 
+    [class.active]="mobileMenuOpen"
+    (click)="closeMobileSidebar()"
+  ></div>
+
+  <!-- LEFT SIDEBAR -->
+  <aside 
+    class="sidebar" 
+    [class.sidebar--collapsed]="sidebarCollapsed"
+    [class.sidebar--mobile-open]="mobileMenuOpen"
+  >
+
+    <!-- LOGO + COLLAPSE BUTTON -->
+    <div class="sidebar__logo-row">
+      <img
+        class="sidebar__logo"
+        [src]="sidebarCollapsed ? logoSmall : logoBig"
+        alt="CapacityChemical"
+      />
+
+      <button class="sidebar__collapse-btn" (click)="toggleSidebar()">
+        <span class="icon" [ngClass]="collapseIconClass"></span>
+      </button>
+    </div>
+
+    <!-- SIDEBAR MENU -->
+    <nav class="sidebar__menu">
+
+      <button class="sidebar__item" (click)="onMenuItemClick()">
+        <span class="menu-icon menu-icon--home"></span>
+        <span class="sidebar__item-label">Home</span>
+      </button>
+
+      <button class="sidebar__item" (click)="onMenuItemClick()">
+        <span class="menu-icon menu-icon--chatbot"></span>
+        <span class="sidebar__item-label">Chatbot</span>
+      </button>
+
+      <button class="sidebar__item sidebar__item--active" (click)="onMenuItemClick()">
+        <span class="menu-icon menu-icon--resources"></span>
+        <span class="sidebar__item-label">Resources</span>
+      </button>
+
+      <button class="sidebar__item" (click)="onMenuItemClick()">
+        <span class="menu-icon menu-icon--pending"></span>
+        <span class="sidebar__item-label">Pending Approvals</span>
+      </button>
+
+      <button class="sidebar__item" (click)="onMenuItemClick()">
+        <span class="menu-icon menu-icon--users"></span>
+        <span class="sidebar__item-label">Users</span>
+      </button>
+
+      <button class="sidebar__item" (click)="onMenuItemClick()">
+        <span class="menu-icon menu-icon--analytics"></span>
+        <span class="sidebar__item-label">Analytics</span>
+      </button>
+
+      <button class="sidebar__item" (click)="onMenuItemClick()">
+        <span class="menu-icon menu-icon--settings"></span>
+        <span class="sidebar__item-label">Config Settings</span>
+      </button>
+
+    </nav>
+
+    <!-- PROFILE (EXPANDED) -->
+    <div class="sidebar__profile">
+      <div class="sidebar__profile-avatar">
+        <img src="assets/user-avatar.png" alt="John Doe">
+      </div>
+
+      <div class="sidebar__profile-info">
+        <div class="sidebar__profile-name">John Doe</div>
+        <div class="sidebar__profile-role">Researcher</div>
+      </div>
+
+      <button class="sidebar__profile-more">
+        <span class="icon icon--profile-more"></span>
+      </button>
+    </div>
+
+    <!-- PROFILE (COLLAPSED) -->
+    <div class="sidebar__profile-collapsed">
+      <img src="assets/user-avatar.png" alt="John Doe">
+    </div>
+
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- TOP HEADER -->
+    <header class="main__header">
+      <h1 class="main__title">Resources</h1>
+
+      <div class="main__header-right">
+
+        <div class="main__search">
+          <span class="icon icon--search"></span>
+          <input
+            type="text"
+            placeholder="Search Text"
+            [value]="searchText"
+            (input)="onSearch($any($event.target).value)"
+          />
+        </div>
+
+        <button class="main__sort" (click)="toggleSort()">
+          <span class="icon icon--sort"></span>
+        </button>
+
+      </div>
+    </header>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <button 
+        class="tabs__btn" 
+        [class.tabs__btn--active]="activeTab === 'all'" 
+        (click)="setActiveTab('all')"
+      >
+        All Resources
+      </button>
+      <button 
+        class="tabs__btn" 
+        [class.tabs__btn--active]="activeTab === 'knowledge'" 
+        (click)="setActiveTab('knowledge')"
+      >
+        Knowledge Base
+      </button>
+      <button 
+        class="tabs__btn" 
+        [class.tabs__btn--active]="activeTab === 'formulas'" 
+        (click)="setActiveTab('formulas')"
+      >
+        Formulas
+      </button>
+      <button 
+        class="tabs__btn" 
+        [class.tabs__btn--active]="activeTab === 'quotes'" 
+        (click)="setActiveTab('quotes')"
+      >
+        Quotes
+      </button>
+    </div>
+
+    <!-- TABLE CARD -->
+    <section class="card">
+
+      <table class="table">
+
+        <thead>
+          <tr>
+            <th>File</th>
+            <th>Date</th>
+            <th>File Type</th>
+            <th>File Size</th>
+            <th class="actions-header">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let r of displayedResources">
+            <td>{{ r.file }}</td>
+            <td>{{ r.date }}</td>
+            <td>{{ r.fileType }}</td>
+            <td>{{ r.size }}</td>
+
+            <td class="actions-cell">
+              <button class="icon-btn" (click)="downloadFile(r)">
+                <span class="icon icon--download"></span>
+              </button>
+
+              <button class="icon-btn" (click)="shareFile(r)">
+                <span class="icon icon--share"></span>
+              </button>
+            </td>
+          </tr>
+
+          <tr *ngIf="displayedResources.length === 0">
+            <td colspan="5" class="table__empty">No records match your filters.</td>
+          </tr>
+
+        </tbody>
+      </table>
+
+    </section>
+
+    <div class="upload-btn-wrap">
+      <button class="upload-btn" (click)="uploadFiles()">
+        <span class="icon icon--upload"></span>
+        <span>Upload Files</span>
+      </button>
+    </div>
+
+  </main>
+
+</div>
