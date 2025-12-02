@@ -24,8 +24,8 @@ const routes: Routes = [
       },
       {
         path: 'resources',
-        // component: ResourcesComponent
-        loadComponent: () => import('../../shared/components/placeholder.component').then(m => m.PlaceholderComponent)
+        component: ResourcesComponent
+        // loadComponent: () => import('../../shared/components/placeholder.component').then(m => m.PlaceholderComponent)
       },
       {
         path: 'approvals',

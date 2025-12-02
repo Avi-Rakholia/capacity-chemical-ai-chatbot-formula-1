@@ -1,0 +1,113 @@
+<div class="page">
+
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- TOP HEADER -->
+    <header class="main__header">
+      <h1 class="main__title">Resources</h1>
+
+      <div class="main__header-right">
+
+        <div class="main__search">
+          <span class="icon icon--search"></span>
+          <input
+            type="text"
+            placeholder="Search Text"
+            [value]="searchText"
+            (input)="onSearch($any($event.target).value)"
+          />
+        </div>
+
+        <button class="main__sort" (click)="toggleSort()">
+          <span class="icon icon--sort"></span>
+        </button>
+
+      </div>
+    </header>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <button 
+        class="tabs__btn" 
+        [class.tabs__btn--active]="activeTab === 'all'" 
+        (click)="setActiveTab('all')"
+      >
+        All Resources
+      </button>
+      <button 
+        class="tabs__btn" 
+        [class.tabs__btn--active]="activeTab === 'knowledge'" 
+        (click)="setActiveTab('knowledge')"
+      >
+        Knowledge Base
+      </button>
+      <button 
+        class="tabs__btn" 
+        [class.tabs__btn--active]="activeTab === 'formulas'" 
+        (click)="setActiveTab('formulas')"
+      >
+        Formulas
+      </button>
+      <button 
+        class="tabs__btn" 
+        [class.tabs__btn--active]="activeTab === 'quotes'" 
+        (click)="setActiveTab('quotes')"
+      >
+        Quotes
+      </button>
+    </div>
+
+    <!-- TABLE CARD -->
+    <section class="card">
+
+      <table class="table">
+
+        <thead>
+          <tr>
+            <th>File</th>
+            <th>Date</th>
+            <th>File Type</th>
+            <th>File Size</th>
+            <th class="actions-header">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let r of displayedResources">
+            <td>{{ r.file }}</td>
+            <td>{{ r.date }}</td>
+            <td>{{ r.fileType }}</td>
+            <td>{{ r.size }}</td>
+
+            <td class="actions-cell">
+              <button class="icon-btn" (click)="downloadFile(r)">
+                <span class="icon icon--download"></span>
+              </button>
+
+              <button class="icon-btn" (click)="shareFile(r)">
+                <span class="icon icon--share"></span>
+              </button>
+            </td>
+          </tr>
+
+          <tr *ngIf="displayedResources.length === 0">
+            <td colspan="5" class="table__empty">No records match your filters.</td>
+          </tr>
+
+        </tbody>
+      </table>
+
+    </section>
+
+    <div class="upload-btn-wrap">
+      <button class="upload-btn" (click)="uploadFiles()">
+        <span class="icon icon--upload"></span>
+        <span>Upload Files</span>
+      </button>
+    </div>
+
+  </main>
+
+</div>
