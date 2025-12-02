@@ -6,6 +6,7 @@ import { ChatbotComponent } from '../chatbot/chatbot.component';
 import { ResourcesComponent } from '../resources/resources.component';
 import { ApprovalsComponent } from '../approvals/approvals.component';
 import { SettingsComponent } from '../settings/settings.component';
+import { Users } from '../users/users';
 
 const routes: Routes = [
   {
@@ -28,8 +29,12 @@ const routes: Routes = [
       },
       {
         path: 'approvals',
-        // component: ApprovalsComponent
-        loadComponent: () => import('../../shared/components/placeholder.component').then(m => m.PlaceholderComponent)
+        component: ApprovalsComponent
+        // loadComponent: () => import('../../shared/components/placeholder.component').then(m => m.PlaceholderComponent)
+      },
+      {
+        path: 'users',
+        component: Users,
       },
       {
         path: 'settings',
