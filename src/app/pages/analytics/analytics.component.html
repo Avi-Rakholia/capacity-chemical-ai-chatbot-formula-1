@@ -1,0 +1,298 @@
+<div class="page">
+
+  <button class="mobile-menu-toggle" (click)="toggleMobileSidebar()">
+    <span class="hamburger-icon">☰</span>
+  </button>
+
+  <div 
+    class="sidebar-overlay" 
+    [class.active]="mobileMenuOpen"
+    (click)="closeMobileSidebar()"
+  ></div>
+
+  <aside 
+    class="sidebar" 
+    [class.sidebar--collapsed]="sidebarCollapsed"
+    [class.sidebar--mobile-open]="mobileMenuOpen"
+  >
+    <div class="sidebar__content">
+
+      <div class="sidebar__logo-row">
+
+  <img 
+    *ngIf="!sidebarCollapsed" 
+    src="/assets/logo-big.png" 
+    class="sidebar__logo sidebar__logo--full"
+  />
+
+  <img 
+    *ngIf="sidebarCollapsed" 
+    src="/assets/logo-small.png" 
+    class="sidebar__logo sidebar__logo--small"
+  />
+
+  <button class="sidebar__collapse-btn" (click)="toggleSidebar()">
+    <span>{{ sidebarCollapsed ? '→' : '←' }}</span>
+  </button>
+</div>
+
+
+      <nav class="sidebar__menu">
+
+        <button class="sidebar__item">
+          <span class="menu-icon menu-icon--home"></span>
+          <span class="sidebar__item-label">Home</span>
+        </button>
+
+        <button class="sidebar__item">
+          <span class="menu-icon menu-icon--chatbot"></span>
+          <span class="sidebar__item-label">Chatbot</span>
+        </button>
+
+        <button class="sidebar__item">
+          <span class="menu-icon menu-icon--resources"></span>
+          <span class="sidebar__item-label">Resources</span>
+        </button>
+
+        <button class="sidebar__item">
+          <span class="menu-icon menu-icon--pending"></span>
+          <span class="sidebar__item-label">Pending Approvals</span>
+        </button>
+
+        <button class="sidebar__item">
+          <span class="menu-icon menu-icon--users"></span>
+          <span class="sidebar__item-label">Users</span>
+        </button>
+
+        <button class="sidebar__item sidebar__item--active">
+          <span class="menu-icon menu-icon--analytics"></span>
+          <span class="sidebar__item-label">Analytics</span>
+        </button>
+
+        <button class="sidebar__item">
+          <span class="menu-icon menu-icon--settings"></span>
+          <span class="sidebar__item-label">Config Settings</span>
+        </button>
+
+      </nav>
+
+      <div class="sidebar__profile" *ngIf="!sidebarCollapsed">
+        <div class="sidebar__profile-avatar">
+          <img src="/assets/user-avatar.png" />
+        </div>
+
+        <div class="sidebar__profile-info">
+          <div class="sidebar__profile-name">John Doe</div>
+          <div class="sidebar__profile-role">Researcher</div>
+        </div>
+      </div>
+
+      <div class="sidebar__profile-collapsed" *ngIf="sidebarCollapsed">
+        <img src="/assets/user-avatar.png" />
+      </div>
+
+    </div>
+  </aside>
+
+  <main class="main" [class.main--collapsed]="sidebarCollapsed">
+
+    <header class="main__header">
+      <h1 class="main__title">Admin Analytics Dashboard</h1>
+    </header>
+
+    <div class="stats-row">
+
+      <div class="stat-card stat-card--user-session">
+        <h3 class="stat-card__title">User Session</h3>
+
+        <div class="user-session">
+
+          <svg class="user-session__chart" viewBox="0 0 160 160">
+            <circle 
+              cx="80" cy="80" r="70" 
+              fill="none" 
+              [attr.stroke]="sessionData.inactive.color" 
+              stroke-width="12"
+            />
+            
+            <circle 
+              cx="80" cy="80" r="70"
+              fill="none"
+              stroke="url(#dynamicGradient)"
+              stroke-width="12"
+              [attr.stroke-dasharray]="getCircumference()"
+              [attr.stroke-dashoffset]="getActiveOffset()"
+              transform="rotate(-90 80 80)"
+              stroke-linecap="round"
+            />
+
+            <image 
+                xlink:href="assets\png-transparent-computer-icons-user-login-others-miscellaneous-share-icon-advanina-group-thumbnail-removebg-preview.png" 
+                x="50" 
+                y="50" 
+                height="60" 
+                width="60"
+            />
+
+            <defs>
+              <linearGradient id="dynamicGradient">
+                <stop offset="0%" [attr.stop-color]="sessionData.active.colorStart"/>
+                <stop offset="100%" [attr.stop-color]="sessionData.active.colorEnd"/>
+              </linearGradient>
+            </defs>
+          </svg>
+
+          <div class="user-session__legend">
+
+            <div class="legend-item legend-item--active">
+                <span class="legend-dot legend-dot--green"></span>
+                <span class="legend-label">Active</span>
+                <span class="legend-value legend-value--green">{{ sessionData.active.percentage }}%</span> 
+            </div>
+
+            <div class="legend-item">
+                <span class="legend-dot legend-dot--red"></span>
+                <span class="legend-label">Inactive</span>
+                <span class="legend-value legend-value--red">{{ sessionData.inactive.percentage }}%</span>
+            </div>
+
+        </div>
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        
+        <div class="stat-card">
+          <div class="stat-card__header">
+            <span class="stat-card__icon">💬</span>
+            <span class="stat-card__label">Total Interaction</span>
+          </div>
+
+          <div class="stat-card__value">
+            {{ totalInteractions.value }}
+            <span class="stat-card__change stat-card__change--down">
+              {{ totalInteractions.change }}%
+            </span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card__header">
+            <span class="stat-card__icon">⏱️</span>
+            <span class="stat-card__label">Avg Time/Chat</span>
+          </div>
+
+          <div class="stat-card__value">
+            {{ avgTimePerChat.value }}{{ avgTimePerChat.unit }}
+            <span class="stat-card__change stat-card__change--up">+2%</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card__header">
+            <span class="stat-card__icon">💬</span>
+            <span class="stat-card__label">Avg Message/Chat</span>
+          </div>
+
+          <div class="stat-card__value">
+            {{ avgMessagesPerChat.value }}
+            <span class="stat-card__change stat-card__change--up">+2%</span>
+          </div>
+        </div>
+        
+      </div>
+
+    </div>
+
+    <div class="content-row">
+
+      <div class="quick-access-card">
+        <h3 class="card-title">Quick Access</h3>
+
+        <div class="quick-access-grid">
+          <button class="quick-access-item" *ngFor="let item of quickAccessItems">
+            <span class="quick-access-icon">{{ item.icon }}</span>
+            <span class="quick-access-label">{{ item.label }}</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3 class="card-title">Queries over time</h3>
+
+          <select class="year-select" [(ngModel)]="selectedYear" (change)="onYearChange(selectedYear)">
+            <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+          </select>
+        </div>
+
+        <div class="chart-container">
+          <canvas #chartCanvas></canvas>
+        </div>
+
+        <div class="chart-toggles">
+          <label>
+            <input type="checkbox" [(ngModel)]="showOrange" (change)="toggleSeries('orange')" />
+            Orange Line
+          </label>
+
+          <label>
+            <input type="checkbox" [(ngModel)]="showBlue" (change)="toggleSeries('blue')" />
+            Blue Line
+          </label>
+
+          <button class="download-btn" (click)="downloadChart()">Download PNG</button>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="users-card">
+
+      <h3 class="card-title">Users</h3>
+
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th><input type="checkbox" (change)="toggleAllUsers()" /></th>
+            <th>Employee</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          <tr *ngFor="let user of users; let i = index">
+            <td><input type="checkbox" [checked]="isUserSelected(i)" (change)="toggleUserSelection(i)" /></td>
+
+            <td>
+              <div class="user-cell">
+                <span class="user-avatar">{{ user.avatar }}</span>
+                <span class="user-name">{{ user.name }}</span>
+              </div>
+            </td>
+
+            <td>{{ user.email }}</td>
+            <td>{{ user.role }}</td>
+
+            <td>
+              <span class="status-badge status-badge--active">{{ user.status }}</span>
+            </td>
+
+            <td>
+              <button class="action-btn">⚙️</button>
+            </td>
+
+          </tr>
+
+        </tbody>
+      </table>
+
+    </div>
+
+  </main>
+
+</div>
