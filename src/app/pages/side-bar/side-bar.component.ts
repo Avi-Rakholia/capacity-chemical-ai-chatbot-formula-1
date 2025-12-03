@@ -1,7 +1,7 @@
-import { Component, inject, OnInit, HostListener, computed, signal } from '@angular/core';
+import { Component, inject, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
-import { SupabaseService, AuthUser } from '../../core/services/supabase.service';
+import { SupabaseAuthService } from '../../core/services/supabase-auth.service';
 import { filter } from 'rxjs/operators';
 
 @Component({
@@ -10,13 +10,16 @@ import { filter } from 'rxjs/operators';
   imports: [CommonModule, RouterOutlet],
   templateUrl: './side-bar.component.html',
   styleUrls: ['./side-bar.component.scss'],
+  host: {
+    '(window:resize)': 'onResize()'
+  }
 })
 export class SideBarComponent implements OnInit {
-  private supabaseService = inject(SupabaseService);
+  private authService = inject(SupabaseAuthService);
   private router = inject(Router);
 
-  // Signals
-  currentUser = signal<AuthUser | null>(null);
+  // Use auth service's current user signal directly
+  currentUser = this.authService.currentUser;
   activeRoute = signal<string>('dashboard');
   profileMenuOpen = signal<boolean>(false);
 
@@ -38,15 +41,9 @@ export class SideBarComponent implements OnInit {
   ngOnInit() {
     this.checkWindowSize();
 
-    const initialUser = this.supabaseService.getCurrentUser();
-    if (initialUser) {
-      this.currentUser.set(initialUser);
-    }
-
-    this.supabaseService.currentUser$.subscribe((user) => {
-      this.currentUser.set(user);
-
-      if (!user && initialUser) {
+    // Subscribe to user changes
+    this.authService.currentUser$.subscribe((user) => {
+      if (!user) {
         this.router.navigate(['/login']);
       }
     });
@@ -142,20 +139,13 @@ export class SideBarComponent implements OnInit {
 
   async logout(): Promise<void> {
     this.profileMenuOpen.set(false);
-
-    const { error } = await this.supabaseService.signOut();
-
-    if (!error) {
-      this.router.navigate(['/login']);
-    } else {
-      console.error('Logout error:', error);
-    }
+    await this.authService.logout();
+    this.router.navigate(['/login']);
   }
 
-  @HostListener('window:resize', [])
-  onResize() {
+  onResize = () => {
     this.checkWindowSize();
-  }
+  };
 
   private checkWindowSize() {
     const w = window.innerWidth;

@@ -7,6 +7,7 @@ import { ResourcesComponent } from '../resources/resources.component';
 import { ApprovalsComponent } from '../approvals/approvals.component';
 import { SettingsComponent } from '../settings/settings.component';
 import { Users } from '../users/users';
+import { AnalyticsComponent } from '../analytics/analytics';
 
 const routes: Routes = [
   {
@@ -31,6 +32,11 @@ const routes: Routes = [
         path: 'approvals',
         component: ApprovalsComponent
         // loadComponent: () => import('../../shared/components/placeholder.component').then(m => m.PlaceholderComponent)
+      },
+      {
+        path: 'analytics',            // ⭐ NEW ROUTE
+        pathMatch: 'full',
+        component: AnalyticsComponent
       },
       {
         path: 'users',

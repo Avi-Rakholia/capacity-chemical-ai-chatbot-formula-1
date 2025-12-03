@@ -229,12 +229,16 @@ export class SupabaseAuthService {
    * Handle successful authentication
    */
   private handleAuthSuccess(data: any): void {
+    console.log('handleAuthSuccess called with data:', data);
+    
     if (data.access_token || data.session?.access_token) {
       const accessToken = data.access_token || data.session.access_token;
       const refreshToken = data.session?.refresh_token;
 
+      console.log('Storing access token:', accessToken);
       this.setAccessToken(accessToken);
       if (refreshToken) {
+        console.log('Storing refresh token');
         this.setRefreshToken(refreshToken);
       }
 
@@ -243,14 +247,17 @@ export class SupabaseAuthService {
         const user: AuthUser = {
           id: data.user.id,
           email: data.user.email,
-          name: data.user.user_metadata?.name || data.user.user_metadata?.display_name,
-          role: data.user.user_metadata?.role,
-          metadata: data.user.user_metadata
+          name: data.user.user_metadata?.name || data.user.user_metadata?.display_name || data.user.name,
+          role: data.user.user_metadata?.role || data.user.role,
+          metadata: data.user.user_metadata || data.user.metadata
         };
+        console.log('Setting user data:', user);
         this.currentUser.set(user);
         this.currentUserSubject.next(user);
         localStorage.setItem('user', JSON.stringify(user));
       }
+    } else {
+      console.warn('No access token found in auth response');
     }
   }
 
@@ -272,33 +279,47 @@ export class SupabaseAuthService {
    * Clear authentication data
    */
   private clearAuth(): void {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('user');
-    this.currentUser.set(null);
-    this.currentUserSubject.next(null);
+    // localStorage.removeItem('access_token');
+    // localStorage.removeItem('refresh_token');
+    // localStorage.removeItem('user');
+    // this.currentUser.set(null);
+    // this.currentUserSubject.next(null);
   }
 
   /**
    * Load user from storage on init
    */
   private loadUserFromStorage(): void {
+    console.log('Loading user from storage...');
     const userStr = localStorage.getItem('user');
     const token = this.getAccessToken();
+
+    console.log('User string from storage:', userStr);
+    console.log('Token from storage:', token ? 'exists' : 'not found');
 
     if (userStr && token) {
       try {
         const user = JSON.parse(userStr);
+        console.log('Parsed user:', user);
         this.currentUser.set(user);
         this.currentUserSubject.next(user);
         
         // Optionally verify token is still valid
         this.getCurrentUser().subscribe({
-          error: () => this.clearAuth()
+          next: (response) => {
+            console.log('Token verification successful:', response);
+          },
+          error: (error) => {
+            console.error('Token verification failed:', error);
+            this.clearAuth();
+          }
         });
       } catch (error) {
+        console.error('Error parsing user from storage:', error);
         this.clearAuth();
       }
+    } else {
+      console.log('No user or token found in storage');
     }
   }
 

@@ -28,7 +28,7 @@ export const routes: Routes = [
     },
     {
         path: 'home',
-        canActivate: [authGuard],
+        // canActivate: [authGuard],
         loadChildren: () => import('./pages/main-pages/main-pages.module').then(m => m.MainPagesModule)
     },
     {
@@ -42,7 +42,7 @@ export const routes: Routes = [
     },
     {
         path: 'admin',
-        canActivate: [roleGuard(['nsight', 'capacity'])],
+        // canActivate: [roleGuard(['nsight', 'capacity'])],
         loadChildren: () => import('./pages/main-pages/main-pages.module').then(m => m.MainPagesModule)
     },
     {
