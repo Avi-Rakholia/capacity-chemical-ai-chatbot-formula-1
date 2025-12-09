@@ -1,32 +1,10 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { UserApiService, UserWithRole, CreateUserRequest, UpdateUserRequest } from '../../core/services/user-api.service';
+import { HttpClientModule } from '@angular/common/http';
 
-// --- MOCK API TYPES ---
-interface UserWithRole {
-  user_id: number;
-  name: string;
-  email: string;
-  role_id: number;
-  role_name: string;
-  status: 'Active' | 'Inactive';
-}
-
-interface CreateUserRequest {
-  name: string;
-  email: string;
-  role_id: number;
-  status: 'Active' | 'Inactive';
-  password?: string;
-}
-
-interface UpdateUserRequest {
-  name?: string;
-  email?: string;
-  role_id?: number;
-  status?: 'Active' | 'Inactive';
-}
-
+// --- TYPES ---
 interface Role {
   id: number;
   name: string;
@@ -41,14 +19,14 @@ class UserApiServiceMock {
   ];
 
   private mockUsers: UserWithRole[] = [
-    { user_id: 1, name: 'Harvey Spector', email: 'harvey@capacitychemicals.com', role_id: 1, role_name: 'Admin', status: 'Active' },
-    { user_id: 2, name: 'John Doe', email: 'john@capacitychemicals.com', role_id: 2, role_name: 'Researcher', status: 'Active' },
-    { user_id: 3, name: 'Harry Potter', email: 'harry@capacitychemicals.com', role_id: 2, role_name: 'Researcher', status: 'Inactive' },
-    { user_id: 4, name: 'Jhonny Depp', email: 'jhonny@capacitychemicals.com', role_id: 4, role_name: 'Sales', status: 'Active' },
-    { user_id: 5, name: 'Harry Potter', email: 'harry@capacitychemicals.com', role_id: 2, role_name: 'Researcher', status: 'Inactive' },
-    { user_id: 6, name: 'John Doe', email: 'john@capacitychemicals.com', role_id: 2, role_name: 'Researcher', status: 'Active' },
-    { user_id: 7, name: 'John Doe', email: 'john@capacitychemicals.com', role_id: 2, role_name: 'Researcher', status: 'Active' },
-    { user_id: 8, name: 'John Doe', email: 'john@capacitychemicals.com', role_id: 2, role_name: 'Researcher', status: 'Active' },
+    { user_id: 1, name: 'Harvey Spector', email: 'harvey@capacitychemicals.com', role_id: 1, role_name: 'Admin', status: 'Active', permissions: {} },
+    { user_id: 2, name: 'John Doe', email: 'john@capacitychemicals.com', role_id: 2, role_name: 'Researcher', status: 'Active', permissions: {} },
+    { user_id: 3, name: 'Harry Potter', email: 'harry@capacitychemicals.com', role_id: 2, role_name: 'Researcher', status: 'Inactive', permissions: {} },
+    { user_id: 4, name: 'Jhonny Depp', email: 'jhonny@capacitychemicals.com', role_id: 4, role_name: 'Sales', status: 'Active', permissions: {} },
+    { user_id: 5, name: 'Harry Potter', email: 'harry@capacitychemicals.com', role_id: 2, role_name: 'Researcher', status: 'Inactive', permissions: {} },
+    { user_id: 6, name: 'John Doe', email: 'john@capacitychemicals.com', role_id: 2, role_name: 'Researcher', status: 'Active', permissions: {} },
+    { user_id: 7, name: 'John Doe', email: 'john@capacitychemicals.com', role_id: 2, role_name: 'Researcher', status: 'Active', permissions: {} },
+    { user_id: 8, name: 'John Doe', email: 'john@capacitychemicals.com', role_id: 2, role_name: 'Researcher', status: 'Active', permissions: {} },
   ];
 
   getAllUsers(page: number, size: number, filters: any): any {
@@ -90,6 +68,7 @@ class UserApiServiceMock {
       role_id: request.role_id,
       role_name: roleName,
       status: request.status,
+      permissions: {},
     };
 
     this.mockUsers.unshift(newUser);
@@ -130,17 +109,18 @@ class UserApiServiceMock {
 
 @Component({
   selector: 'app-users',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, HttpClientModule],
   templateUrl: './users.html',
   styleUrl: './users.scss',
 })
 export class Users implements OnInit {
-  private userApiService = new UserApiServiceMock();
+  private userApiService = inject(UserApiService);
+  private mockService = new UserApiServiceMock(); // Fallback
 
   users = signal<UserWithRole[]>([]);
   loading = signal(false);
   error = signal<string | null>(null);
+  usingMockData = signal(false); // Track if using mock data
 
   currentPage = signal(1);
   pageSize = signal(10);
@@ -204,7 +184,7 @@ export class Users implements OnInit {
   });
 
   ngOnInit(): void {
-    this.roles = this.userApiService.getRoles();
+    this.roles = this.mockService.getRoles(); // Use mock for roles
     this.loadUsers();
   }
 
@@ -219,19 +199,39 @@ export class Users implements OnInit {
       status: this.statusFilter() || undefined
     };
 
-    this.userApiService.getAllUsers(this.currentPage(), this.pageSize(), filters)
+    // Try to use real API first
+    this.userApiService
+      .getAllUsers(this.currentPage(), this.pageSize(), filters)
       .subscribe({
-        next: (response: any) => {
+        next: (response) => {
           if (response.success && response.data) {
             this.users.set(response.data.data);
             this.totalItems.set(response.data.pagination.total);
             this.totalPages.set(response.data.pagination.totalPages);
+            this.usingMockData.set(false);
           }
           this.loading.set(false);
         },
-        error: () => {
-          this.error.set('Failed to load users. Please try again.');
-          this.loading.set(false);
+        error: (err) => {
+          console.warn('API unavailable, using mock data:', err);
+          this.usingMockData.set(true);
+          this.error.set('Using dummy data - API unavailable');
+          
+          // Fallback to mock service
+          this.mockService.getAllUsers(this.currentPage(), this.pageSize(), filters).subscribe({
+            next: (response: any) => {
+              if (response.success && response.data) {
+                this.users.set(response.data.data);
+                this.totalItems.set(response.data.pagination.total);
+                this.totalPages.set(response.data.pagination.totalPages);
+              }
+              this.loading.set(false);
+            },
+            error: () => {
+              this.error.set('Failed to load users');
+              this.loading.set(false);
+            }
+          });
         }
       });
   }
@@ -312,7 +312,9 @@ export class Users implements OnInit {
 
     const form = this.createForm();
 
-    this.userApiService.createUser(form).subscribe({
+    const apiService = this.usingMockData() ? this.mockService : this.userApiService;
+    
+    apiService.createUser(form).subscribe({
       next: (response: any) => {
         if (response.success) {
           this.closeCreateModal();
@@ -396,7 +398,9 @@ export class Users implements OnInit {
     this.loading.set(true);
     this.error.set(null);
 
-    this.userApiService.updateUser(user.user_id, this.editForm()).subscribe({
+    const apiService = this.usingMockData() ? this.mockService : this.userApiService;
+    
+    apiService.updateUser(user.user_id, this.editForm()).subscribe({
       next: (response: any) => {
         if (!response.success) {
           this.error.set(response.error || 'Failed to update user');

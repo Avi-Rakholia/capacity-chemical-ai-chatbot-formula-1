@@ -1,6 +1,8 @@
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit, HostListener, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ResourceService, Resource } from '../../services/resource.service';
+import { HttpClientModule } from '@angular/common/http';
 
 interface ResourceItem {
   id: number;
@@ -13,12 +15,23 @@ interface ResourceItem {
 
 @Component({
   selector: 'app-resources',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, HttpClientModule],
   templateUrl: './resources.component.html',
   styleUrls: ['./resources.component.scss']
 })
 export class ResourcesComponent implements OnInit {
+  private resourceService = inject(ResourceService);
+
+  // Signals for reactive state
+  resources = signal<Resource[]>([]);
+  loading = signal(false);
+  error = signal<string | null>(null);
+  uploadProgress = signal(0);
+  showUploadModal = signal(false);
+  selectedFile = signal<File | null>(null);
+  uploadCategory = signal<'formulas' | 'quotes' | 'knowledge' | 'other'>('formulas');
+  uploadDescription = signal('');
+  
   // Sidebar state
   sidebarCollapsed = false;
   mobileMenuOpen = false;
@@ -31,7 +44,7 @@ export class ResourcesComponent implements OnInit {
   activeTab: string = 'all';
   sortAsc = true;
 
-  // Resource items
+  // Resource items - dummy data as fallback
   allResources: ResourceItem[] = [
     { id: 1, file: 'Chemical Formulas', date: '11-17-2025', fileType: 'PDF Document', size: '24 MB', category: 'formulas' },
     { id: 2, file: 'Safety Datasheet', date: '11-12-2025', fileType: 'PDF Document', size: '3.2 MB', category: 'knowledge' },
@@ -48,8 +61,45 @@ export class ResourcesComponent implements OnInit {
   displayedResources: ResourceItem[] = [];
 
   ngOnInit(): void {
-    this.filterResources();
+    this.loadResources();
     this.checkScreenSize();
+  }
+
+  loadResources(category?: string) {
+    this.loading.set(true);
+    this.error.set(null);
+    
+    const filters = category && category !== 'all' ? { category: category as any } : undefined;
+    
+    this.resourceService.getAllResources(filters).subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          const apiData = Array.isArray(response.data) ? response.data : [response.data];
+          this.resources.set(apiData);
+          
+          // Convert API resources to ResourceItem format for display
+          if (apiData.length > 0) {
+            this.allResources = apiData.map(r => ({
+              id: r.resource_id,
+              file: r.file_name,
+              date: new Date(r.uploaded_on).toLocaleDateString('en-US'),
+              fileType: r.file_type,
+              size: r.file_size,
+              category: r.category
+            }));
+          }
+          this.filterResources();
+        }
+        this.loading.set(false);
+      },
+      error: (err) => {
+        this.error.set('Using dummy data - API unavailable');
+        this.loading.set(false);
+        console.warn('Could not load resources from API, using dummy data:', err);
+        // Keep dummy data if API fails
+        this.filterResources();
+      }
+    });
   }
 
   // Listen for window resize
@@ -93,7 +143,7 @@ export class ResourcesComponent implements OnInit {
 
   setActiveTab(tab: string): void {
     this.activeTab = tab;
-    this.filterResources();
+    this.loadResources(tab);
   }
 
   toggleSort(): void {
@@ -131,17 +181,111 @@ export class ResourcesComponent implements OnInit {
   }
 
   downloadFile(resource: ResourceItem): void {
-    console.log('Downloading:', resource.file);
-    alert(`Downloading: ${resource.file}`);
+    const apiResource = this.resources().find(r => r.resource_id === resource.id);
+    
+    if (apiResource) {
+      this.loading.set(true);
+      this.resourceService.downloadResource(apiResource.resource_id).subscribe({
+        next: (blob) => {
+          // Create blob URL and trigger download
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = apiResource.file_name;
+          link.click();
+          window.URL.revokeObjectURL(url);
+          this.loading.set(false);
+        },
+        error: (err) => {
+          console.error('Download error:', err);
+          // Fallback: try opening URL directly
+          if (apiResource.file_url) {
+            window.open(apiResource.file_url, '_blank');
+          } else {
+            alert(`Download failed for: ${resource.file}`);
+          }
+          this.loading.set(false);
+        }
+      });
+    } else {
+      console.log('Downloading (dummy data):', resource.file);
+      alert(`Download not available for dummy data: ${resource.file}`);
+    }
   }
 
   shareFile(resource: ResourceItem): void {
-    console.log('Sharing:', resource.file);
-    alert(`Sharing: ${resource.file}`);
+    const apiResource = this.resources().find(r => r.resource_id === resource.id);
+    if (apiResource?.file_url) {
+      // Copy to clipboard
+      navigator.clipboard.writeText(apiResource.file_url).then(() => {
+        alert(`Share link copied to clipboard!`);
+      }).catch(() => {
+        alert(`Share URL: ${apiResource.file_url}`);
+      });
+    } else {
+      console.log('Sharing:', resource.file);
+      alert(`Sharing not available for dummy data: ${resource.file}`);
+    }
   }
 
   uploadFiles(): void {
-    console.log('Upload files clicked');
-    alert('Upload files dialog would open here');
+    this.showUploadModal.set(true);
+  }
+
+  closeUploadModal(): void {
+    this.showUploadModal.set(false);
+    this.selectedFile.set(null);
+    this.uploadDescription.set('');
+    this.uploadProgress.set(0);
+  }
+
+  onFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      // Validate file size (50MB max)
+      if (file.size > 50 * 1024 * 1024) {
+        this.error.set('File size must be less than 50MB');
+        return;
+      }
+      this.selectedFile.set(file);
+      this.error.set(null);
+    }
+  }
+
+  performUpload(): void {
+    const file = this.selectedFile();
+    if (!file) {
+      this.error.set('Please select a file to upload');
+      return;
+    }
+
+    this.loading.set(true);
+    this.error.set(null);
+    this.uploadProgress.set(0);
+
+    // TODO: Get actual user ID from auth service
+    const uploadedBy = 1; // Placeholder - should come from authenticated user
+
+    this.resourceService.uploadResource(
+      file,
+      this.uploadCategory(),
+      uploadedBy,
+      this.uploadDescription() || undefined
+    ).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.uploadProgress.set(100);
+          alert('File uploaded successfully!');
+          this.closeUploadModal();
+          this.loadResources(this.activeTab === 'all' ? undefined : this.activeTab);
+        }
+        this.loading.set(false);
+      },
+      error: (err) => {
+        console.error('Upload error:', err);
+        this.error.set(err.error?.message || 'Failed to upload file');
+        this.loading.set(false);
+      }
+    });
   }
 }
