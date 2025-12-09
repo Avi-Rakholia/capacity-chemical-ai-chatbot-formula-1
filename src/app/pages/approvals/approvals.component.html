@@ -1,114 +1,26 @@
 <div class="page">
-
-  <!-- LEFT SIDEBAR -->
-  <!-- <aside class="sidebar" [class.sidebar--collapsed]="sidebarCollapsed">
-
-    <div class="sidebar__logo-row">
-      <img class="sidebar__logo" [src]="logoPath" alt="CapacityChemical" />
-
-      <button class="sidebar__collapse-btn" (click)="toggleSidebar()">
-        <span class="icon" [ngClass]="collapseIconClass"></span>
-      </button>
-    </div>
-
-    <nav class="sidebar__menu">
-      <button class="sidebar__item">
-        <span class="menu-icon menu-icon--home"></span>
-        <span class="sidebar__item-label" *ngIf="!sidebarCollapsed">Home</span>
-      </button>
-
-      <button class="sidebar__item">
-        <span class="menu-icon menu-icon--chatbot"></span>
-        <span class="sidebar__item-label" *ngIf="!sidebarCollapsed">Chatbot</span>
-      </button>
-
-      <button class="sidebar__item">
-        <span class="menu-icon menu-icon--resources"></span>
-        <span class="sidebar__item-label" *ngIf="!sidebarCollapsed">Resources</span>
-      </button>
-
-      <button class="sidebar__item sidebar__item--active">
-        <span class="menu-icon menu-icon--pending"></span>
-        <span class="sidebar__item-label" *ngIf="!sidebarCollapsed">Pending Approvals</span>
-      </button>
-
-      <button class="sidebar__item">
-        <span class="menu-icon menu-icon--users"></span>
-        <span class="sidebar__item-label" *ngIf="!sidebarCollapsed">Users</span>
-      </button>
-
-      <button class="sidebar__item">
-        <span class="menu-icon menu-icon--analytics"></span>
-        <span class="sidebar__item-label" *ngIf="!sidebarCollapsed">Analytics</span>
-      </button>
-
-      <button class="sidebar__item">
-        <span class="menu-icon menu-icon--settings"></span>
-        <span class="sidebar__item-label" *ngIf="!sidebarCollapsed">Config Settings</span>
-      </button>
-    </nav>
-
-    <div class="sidebar__profile" *ngIf="!sidebarCollapsed">
-      <div class="sidebar__profile-avatar">
-        <img src="/assets/user-avatar.png" alt="John Doe" />
-      </div>
-
-      <div class="sidebar__profile-info">
-        <div class="sidebar__profile-name">John Doe</div>
-        <div class="sidebar__profile-role">Researcher</div>
-      </div>
-
-      <button class="sidebar__profile-more" aria-label="More options" (click)="toggleMenu($event)">
-        <span class="icon icon--profile-more"></span>
-      </button>
-
-      <div class="profile-menu" *ngIf="menuOpen">
-        <button class="profile-menu__item" (click)="signOut()">
-          <span class="profile-menu__icon">↪</span>
-          <span>Log out</span>
-        </button>
-      </div>
-    </div>
-
-    <div class="sidebar__profile-collapsed" *ngIf="sidebarCollapsed">
-      <img src="/assets/user-avatar.png" alt="John Doe" (click)="toggleMenu($event)" />
-
-      <div class="profile-menu profile-menu--collapsed" *ngIf="menuOpen">
-        <button class="profile-menu__item" (click)="signOut()">
-          <span class="profile-menu__icon">↪</span>
-          <span>Log out</span>
-        </button>
-      </div>
-    </div>
-
-  </aside> -->
-
-  <!-- MAIN CONTENT (scrolls) -->
+  
   <main class="main">
 
-    <!-- TOP HEADER -->
     <header class="main__header">
-      <h1 class="main__title">Pending Approvals</h1>
-
-      <div class="main__header-right">
-        <div class="main__search">
-          <span class="icon icon--search"></span>
-          <input
-            type="text"
-            placeholder="Search Text"
-            (input)="onSearch($event.target.value)"
-          />
-        </div>
-
-        <button class="main__sort"
-                (click)="toggleSort()"
-                [title]="sortAsc ? 'Sort Z–A' : 'Sort A–Z'">
-          <span class="icon icon--sort"></span>
-        </button>
+      
+      <div class="main__search">
+        <span class="icon icon--search"></span>
+        <input
+          type="text"
+          placeholder="Search Text"
+          (input)="onSearch($event.target.value)"
+        />
       </div>
+
+      <button class="main__sort"
+              (click)="toggleSort()"
+              [title]="sortAsc ? 'Sort Z–A' : 'Sort A–Z'">
+        <span class="icon icon--sort"></span>
+      </button>
+      
     </header>
 
-    <!-- TABS -->
     <div class="tabs">
       <button class="tabs__btn"
               [class.tabs__btn--active]="activeTab === 'all'"
@@ -129,7 +41,6 @@
       </button>
     </div>
 
-    <!-- TABLE CARD -->
     <section class="card">
       <table class="table">
         <thead>
@@ -155,7 +66,6 @@
             </td>
 
             <td class="table__actions">
-              <!-- Pending: Approve + Reject -->
               <ng-container *ngIf="row.status === 'Pending'">
                 <button class="icon-btn" (click)="approve(row)" title="Approve">
                   <span class="icon icon--approve"></span>
@@ -165,13 +75,11 @@
                 </button>
               </ng-container>
 
-              <!-- Approved / Rejected: Share -->
               <ng-container *ngIf="row.status !== 'Pending'">
                 <button class="icon-btn" (click)="share(row)" title="Share">
                   <span class="icon icon--share"></span>
                 </button>
 
-                <!-- Tooltip for Rejected -->
                 <div class="tooltip" *ngIf="row.status === 'Rejected'">
                   Safety details not present.
                 </div>
@@ -179,7 +87,6 @@
             </td>
           </tr>
 
-          <!-- No Data Message -->
           <tr *ngIf="filteredRows.length === 0">
             <td colspan="5" class="table__empty">
               No records match your filters.

@@ -1,14 +1,8 @@
 <div class="page">
-
-
-  <!-- MAIN CONTENT -->
+  
   <main class="main">
 
-    <!-- TOP HEADER -->
     <header class="main__header">
-      <h1 class="main__title">Resources</h1>
-
-      <div class="main__header-right">
 
         <div class="main__search">
           <span class="icon icon--search"></span>
@@ -23,43 +17,64 @@
         <button class="main__sort" (click)="toggleSort()">
           <span class="icon icon--sort"></span>
         </button>
-
-      </div>
+        
     </header>
 
-    <!-- TABS -->
-    <div class="tabs">
-      <button 
-        class="tabs__btn" 
-        [class.tabs__btn--active]="activeTab === 'all'" 
-        (click)="setActiveTab('all')"
-      >
-        All Resources
-      </button>
-      <button 
-        class="tabs__btn" 
-        [class.tabs__btn--active]="activeTab === 'knowledge'" 
-        (click)="setActiveTab('knowledge')"
-      >
-        Knowledge Base
-      </button>
-      <button 
-        class="tabs__btn" 
-        [class.tabs__btn--active]="activeTab === 'formulas'" 
-        (click)="setActiveTab('formulas')"
-      >
-        Formulas
-      </button>
-      <button 
-        class="tabs__btn" 
-        [class.tabs__btn--active]="activeTab === 'quotes'" 
-        (click)="setActiveTab('quotes')"
-      >
-        Quotes
-      </button>
-    </div>
+    <!-- ROW: TABS LEFT + UPLOAD BUTTON RIGHT -->
+<div class="tabs-upload-row">
 
-    <!-- TABLE CARD -->
+  <!-- LEFT: 4 TABS -->
+  <div class="tabs">
+    <button 
+      class="tabs__btn" 
+      [class.tabs__btn--active]="activeTab === 'all'" 
+      (click)="setActiveTab('all')"
+    >
+      All Resources
+    </button>
+    <button 
+      class="tabs__btn" 
+      [class.tabs__btn--active]="activeTab === 'knowledge'" 
+      (click)="setActiveTab('knowledge')"
+    >
+      Knowledge Base
+    </button>
+    <button 
+      class="tabs__btn" 
+      [class.tabs__btn--active]="activeTab === 'formulas'" 
+      (click)="setActiveTab('formulas')"
+    >
+      Formulas
+    </button>
+    <button 
+      class="tabs__btn" 
+      [class.tabs__btn--active]="activeTab === 'quotes'" 
+      (click)="setActiveTab('quotes')"
+    >
+      Quotes
+    </button>
+  </div>
+
+  <!-- RIGHT: UPLOAD BUTTON -->
+  <div class="upload-btn-wrap">
+    <button class="upload-btn" (click)="fileInput.click()">
+      <span class="icon icon--upload"></span>
+      Upload Files
+    </button>
+
+    <!-- HIDDEN FILE INPUT -->
+    <input 
+      type="file" 
+      #fileInput 
+      (change)="handleFileUpload($event)" 
+      multiple 
+      hidden 
+    />
+  </div>
+
+</div>
+
+
     <section class="card">
 
       <table class="table">
@@ -100,13 +115,6 @@
       </table>
 
     </section>
-
-    <div class="upload-btn-wrap">
-      <button class="upload-btn" (click)="uploadFiles()">
-        <span class="icon icon--upload"></span>
-        <span>Upload Files</span>
-      </button>
-    </div>
 
   </main>
 

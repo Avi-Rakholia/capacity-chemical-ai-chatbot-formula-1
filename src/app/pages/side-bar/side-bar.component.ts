@@ -164,10 +164,14 @@ export class SideBarComponent implements OnInit {
   onResize = () => this.checkWindowSize();
 
   private checkWindowSize() {
-    const w = window.innerWidth;
-    this.isMobileView = w < 640;
+  const w = window.innerWidth;
+  const mobile = w < 640;
 
-    // Auto-collapse sidebar on mobile
-    this.open.set(!this.isMobileView);
+  // If user just entered mobile mode → collapse ONCE
+  if (mobile && !this.isMobileView) {
+    this.open.set(false);  
   }
+
+  this.isMobileView = mobile;
+}
 }

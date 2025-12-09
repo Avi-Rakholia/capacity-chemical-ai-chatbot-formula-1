@@ -157,39 +157,76 @@ aside.collapsed .avatar-wrapper {
 }
 
 /* ------------------------------------------------------
-   ✔ MOBILE FIX — KEEP EXACT DESKTOP BEHAVIOR ON MOBILE
------------------------------------------------------- */
-/* ------------------------------------------------------
-   FINAL MOBILE FIX (No main shift, no overlay)
+   ✔ FINAL MOBILE SIDEBAR FIX — CHATGPT STYLE
 ------------------------------------------------------ */
 @media (max-width: 640px) {
 
-  /* Sidebar stays fixed but NEVER pushes content */
+  /* RESET desktop min width */
   aside {
-    position: fixed;
+    min-width: 0 !important;
+  }
+
+  /* ---------------------------------------------
+        COLLAPSED SIDEBAR (72px, NOT OVERLAY)
+     --------------------------------------------- */
+  aside.w-72,
+  aside.collapsed {
+    position: relative !important;    
+    width: 72px !important;
+    transform: translateX(0) !important;
+    z-index: 1 !important;
+    box-shadow: none !important;
+  }
+
+  /* Chevron for collapsed state → stays attached to sidebar */
+  aside.w-72 .chevron-btn,
+  aside.collapsed .chevron-btn {
+    position: absolute !important;
+    right: -16px !important;
+    top: 50% !important;
+    transform: translateY(-50%);
+    z-index: 2001 !important;
+
+    /* match desktop UI — DO NOT override background/color */
+    background-color: lightgray !important;
+    color: inherit !important;
+    box-shadow: inherit !important;
+  }
+
+  /* ---------------------------------------------
+        EXPANDED SIDEBAR (FULL OVERLAY)
+     --------------------------------------------- */
+  aside.w-280 {
+    position: fixed !important;       
     top: 0;
     left: 0;
-    bottom: 0;
-
-    width: 280px !important;
+    height: 100vh !important;
+    width: 260px !important;
     transform: translateX(0) !important;
-    z-index: 1050;
-
-    overflow-y: auto;
-    overflow-x: hidden;
+    background-color: lightgray !important;
+    z-index: 3000 !important;
+    box-shadow: 2px 0 14px rgba(0,0,0,0.25);
   }
 
-  aside.collapsed {
-    width: 72px !important;
+  /* Chevron for expanded state → floating like ChatGPT */
+  aside.w-280 .chevron-btn {
+    position: fixed !important;
+    left: 260px !important;         
+    top: 20px !important;
+    transform: translateX(-50%);
+    z-index: 4000 !important;
+
+    /* match desktop button styling */
+    background-color: lightgray !important;
+    color: inherit !important;
+    box-shadow: inherit !important;
   }
 
-  /* MAIN CONTENT DOES NOT MOVE ON MOBILE */
+  /* ---------------------------------------------
+        MAIN CONTENT MUST NEVER MOVE
+     --------------------------------------------- */
   aside ~ main {
     margin-left: 0 !important;
-  }
-
-  /* Chevron stays correctly positioned */
-  .chevron-btn {
-    right: -16px !important;
+    width: 100% !important;
   }
 }

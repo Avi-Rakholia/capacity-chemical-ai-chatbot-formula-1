@@ -5,7 +5,7 @@
 
     <!-- PAGE HEADER -->
     <header class="main__header">
-      <h1 class="main__title">Admin Analytics Dashboard</h1>
+      
     </header>
 
     <!-- =======================
@@ -97,6 +97,9 @@
               {{ totalInteractions.change }}%
             </span>
           </div>
+          <div class="stat-card__chart">
+            <canvas #interactionChart></canvas>
+          </div>
         </div>
 
         <!-- AVG TIME PER CHAT -->
@@ -109,6 +112,9 @@
             {{ avgTimePerChat.value }}{{ avgTimePerChat.unit }}
             <span class="stat-card__change stat-card__change--up">+2%</span>
           </div>
+          <div class="stat-card__chart">
+            <canvas #timeChart></canvas>
+          </div>
         </div>
 
         <!-- AVG MESSAGES -->
@@ -120,6 +126,9 @@
           <div class="stat-card__value">
             {{ avgMessagesPerChat.value }}
             <span class="stat-card__change stat-card__change--up">+2%</span>
+          </div>
+          <div class="stat-card__chart">
+            <canvas #messageChart></canvas>
           </div>
         </div>
 

@@ -1,103 +1,138 @@
-/* -----------------------------------------------------
-   PAGE BACKGROUND — same as Pending Approvals
------------------------------------------------------ */
-.users-container {
-  background: #f5f5f5 !important;
-  min-height: 100vh;
-  padding: 2rem;
-  max-width: 1400px;
-  margin: 0 auto;
-  padding-bottom: 5rem;
+/* 1. GLOBAL SCSS VARIABLES (For Compiler) */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+$shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.06);
+
+/* Breakpoints */
+$mobile: 640px;
+$tablet: 768px;
+$desktop: 1024px;
+
+/* 2. CSS VARIABLE PALETTE (For Browser) */
+:host {
+  --color-primary: #007bff;
+  --color-dark: #1f2937;
+  --color-text: #4b5563;
+  --color-background-light: #f9fafb;
+  --color-card-bg: #ffffff;
+  --color-border: #e5e7eb;
+  --font-family-base: 'Poppins', sans-serif;
 }
 
 /* -----------------------------------------------------
-   PAGE HEADER — left title + right search/sort matching
+   PAGE LAYOUT - MATCHING RESOURCES
 ----------------------------------------------------- */
-.page-header {
+.users-container {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 22px;
+  flex-direction: column;
+  min-height: 100vh;
+  overflow-x: hidden;
+  background: var(--color-background-light);
+  font-family: var(--font-family-base);
+  color: var(--color-dark);
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 3rem 2rem;
+}
 
-  .header-content {
-    .page-title {
-      font-size: 42px !important;
-      font-weight: 700 !important;
-      margin: 0;
-      line-height: 1.2;
-
-      /* SAME gradient style as Pending Approvals */
-      background: linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
+@media (max-width: $tablet) {
+  .users-container {
+    padding: 1.5rem 1rem;
   }
 }
 
 /* -----------------------------------------------------
-   RIGHT-SIDE SEARCH + SORT (MATCH PENDING APPROVAL)
+   PAGE HEADER - CENTERED SEARCH/SORT (MATCHING RESOURCES)
+----------------------------------------------------- */
+.page-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  margin-top: 1rem;
+  width: 100%;
+}
+
+.header-content {
+  display: none; /* Hide title to match Resources page */
+}
+
+/* -----------------------------------------------------
+   HEADER ACTIONS - SEARCH BAR + SORT BUTTON
 ----------------------------------------------------- */
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 0.75rem;
+  flex-grow: 1;
+  max-width: 600px;
+  justify-content: center;
 }
 
-/* SEARCH BOX */
+/* Search Box - MATCHING RESOURCES */
 .search-box {
- display: flex;
+  display: flex;
   align-items: center;
-  padding: 9px 18px;
-  border-radius: 10px;
-  border: 1px solid #e5e7eb;
-  background: white;
-  min-width: 220px;
+  padding: 0.6rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-card-bg);
+  flex-grow: 1;
   transition: all 0.2s ease;
 
+  &:focus-within {
+    border-color: var(--color-dark);
+    box-shadow: 0 0 0 1px var(--color-dark);
+  }
+
   .icon-search {
-     width: 18px;
-    height: 18px;
+    width: 1.25rem;
+    height: 1.25rem;
     display: inline-block;
     background-image: url('/assets/find.svg');
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
+    filter: invert(30%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(50%) contrast(90%);
   }
 
   input {
-   border: none;
+    border: none;
     outline: none;
-    font-size: 14px;
-    margin-left: 8px;
+    font-size: 0.9rem;
+    margin-left: 0.5rem;
     width: 100%;
     min-width: 0;
-    color: #374151;
+    color: var(--color-dark);
+    font-family: var(--font-family-base);
 
     &::placeholder {
-      color: #9ca3af;
+      color: var(--color-text);
+      font-weight: 300;
     }
-  }
-
-  &:focus-within {
-    border-color: #764ba2;
-    box-shadow: 0 0 0 2px rgba(118, 75, 162, 0.2);
   }
 }
 
-/* SORT BUTTON */
+/* Sort Button - MATCHING RESOURCES */
 .sort-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  border: 1px solid #e5e7eb;
-  background: white;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-card-bg);
   cursor: pointer;
   flex-shrink: 0;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
 
   .icon-sort {
-    width: 16px;
-    height: 16px;
+    width: 1.1rem;
+    height: 1.1rem;
     display: inline-block;
     background-image: url('/assets/sorting.svg');
     background-size: contain;
@@ -106,18 +141,226 @@
   }
 
   &:hover {
-     background: #f9fafb;
-    border-color: #d1d5db;
-  }
-
-  &:active {
-    transform: scale(0.95);
+    background: #f0f4ff;
+    border-color: var(--color-primary);
   }
 }
 
+@media (max-width: $mobile) {
+  .page-header {
+    flex-wrap: wrap;
+  }
+  
+  .header-actions {
+    max-width: none;
+    width: 100%;
+  }
+  
+  .search-box {
+    min-width: 10rem;
+  }
+}
 
+/* -----------------------------------------------------
+   ICON FALLBACKS
+----------------------------------------------------- */
+.icon::before {
+  content: "";
+  display: inline-block;
+  width: 1.1rem;
+  height: 1.1rem;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  filter: invert(30%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(50%) contrast(90%);
+}
 
-// Buttons
+.main__sort .icon--sort::before { filter: none; }
+.icon--sort::before { background-image: url("/assets/sorting.svg"); }
+.icon--download::before { background-image: url("/assets/download.svg"); }
+.icon--share::before { background-image: url("/assets/share.svg"); }
+.icon--upload::before { background-image: url("/assets/upload.svg"); filter: invert(100%); }
+
+/* -----------------------------------------------------
+   STATUS TABS - CENTERED (MATCHING RESOURCES)
+----------------------------------------------------- */
+.status-tabs {
+  display: flex;
+  gap: 0.75rem;
+  margin: 1.5rem 0 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.tab-btn {
+  padding: 0.6rem 1.25rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  background: var(--color-card-bg);
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  color: var(--color-text);
+  font-family: var(--font-family-base);
+
+  &:hover {
+    background: #f0f0f4;
+    border-color: #d1d5db;
+  }
+
+  &.active {
+    background: var(--color-primary);
+    color: white;
+    font-weight: 600;
+    border-color: transparent;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+  }
+}
+
+@media (max-width: $mobile) {
+  .tab-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* -----------------------------------------------------
+   TABLE CONTAINER - FIX MOBILE SCROLLING
+----------------------------------------------------- */
+.card {
+  background: var(--color-card-bg);
+  padding: 1.5rem 1.75rem;
+  border-radius: 1rem;
+  box-shadow: $shadow-soft;
+  border: 1px solid #f0f0f0;
+  overflow-x: auto;
+  margin-top: 1rem;
+}
+
+.table-container {
+  background: var(--color-card-bg);
+  border-radius: 1rem;
+  box-shadow: $shadow-soft;
+  border: 1px solid #f0f0f0;
+  overflow-x: auto; /* Allow horizontal scroll on table container */
+  padding: 0;
+}
+
+/* -----------------------------------------------------
+   TABLE - OPTIMIZED SPACING
+----------------------------------------------------- */
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  min-width: 650px; /* Base width for mobile scroll */
+
+  thead th {
+    padding: 1rem 1rem;
+    text-align: left;
+    color: var(--color-text);
+    font-weight: 600;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    border-bottom: 2px solid #f3f4f6;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    vertical-align: middle;
+  }
+
+  tbody td {
+    padding: 1rem 1rem;
+    border-bottom: 1px solid #f3f4f6;
+    font-weight: 400;
+    color: var(--color-dark);
+    vertical-align: middle;
+    text-align: left; /* Default alignment */
+  }
+
+  tbody tr:hover {
+    background-color: #fafbfc;
+  }
+
+  /* Column Widths (OPTIMIZED DISTRIBUTION) */
+  /* Total fixed width consumed by the minimal columns: 30px + 120px + 100px + 80px = 330px (Approx 50% of min-width) */
+  /* Remaining space (670px / 2 = 335px on a 1000px wide screen) should be split between Employee and Email */
+  
+  th:nth-child(1), td:nth-child(1) {
+    width: 30px; /* Checkbox */
+    text-align: center;
+  }
+
+  th:nth-child(2), td:nth-child(2) {
+    /* ⭐ Employee: Allocate 25% of the total available flexible space for better balance */
+    width: 25%; 
+    min-width: 150px; /* Ensure minimum space for avatar/name */
+    text-align: left;
+  }
+
+  th:nth-child(3), td:nth-child(3) {
+    /* ⭐ Email: Allocate remaining 75% of the flexible space */
+    width: 40%; 
+    min-width: 250px;
+    text-align: left;
+  }
+
+  /* Role (4th column) - Minimal fixed width */
+  th:nth-child(4) {
+    width: 120px; 
+    text-align: center; 
+  }
+  td:nth-child(4) {
+    width: 120px;
+    text-align: center; 
+  }
+
+  /* Status (5th column) - Minimal fixed width */
+  th:nth-child(5) {
+    width: 100px;
+    text-align: center; 
+  }
+  td:nth-child(5) {
+    width: 100px;
+    text-align: center; 
+  }
+
+  /* Actions (6th column) - Minimal fixed width */
+  th:nth-child(6), td:nth-child(6) {
+    width: 80px; 
+    text-align: right;
+    padding-right: 1rem;
+  }
+}
+
+/* Ensure text-right class works */
+.text-right {
+  text-align: right !important;
+}
+
+.actions-header,
+.actions-cell {
+  text-align: right !important;
+  white-space: nowrap;
+}
+
+/* Email cell specific styling */
+.email-cell {
+  font-size: 0.875rem;
+  color: #6b7280;
+  text-align: left !important;
+}
+
+/* Role text alignment (No longer needed to manually align the span inside a center-aligned cell) */
+.role-text {
+  /* display: inline-block; */
+  /* text-align: center; */ 
+}
+
+/* -----------------------------------------------------
+   BUTTONS - MATCHING RESOURCES STYLE
+----------------------------------------------------- */
 .btn {
   padding: 0.75rem 1.5rem;
   border: none;
@@ -129,47 +372,48 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  
+  font-family: var(--font-family-base);
+
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
   }
-  
+
   &.btn-primary {
-    background: #1976d2;
+    background: var(--color-primary);
     color: white;
-    
+
     &:hover:not(:disabled) {
-      background: #1565c0;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+      background: #0069d9;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
     }
   }
-  
+
   &.btn-secondary {
     background: #f5f5f5;
     color: #666;
-    
+
     &:hover:not(:disabled) {
       background: #e0e0e0;
     }
   }
-  
+
   &.btn-green {
     background: #9dcc97;
     color: #1a1a1a;
     font-weight: 600;
-    
+
     &:hover:not(:disabled) {
       background: #8bc085;
       transform: translateY(-1px);
     }
   }
-  
+
   &.btn-danger {
     background: #d32f2f;
     color: white;
-    
+
     &:hover:not(:disabled) {
       background: #c62828;
       transform: translateY(-1px);
@@ -178,17 +422,21 @@
   }
 }
 
+/* Action buttons - MATCHING RESOURCES */
 .btn-icon {
-  padding: 0.5rem;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  border-radius: 6px;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  background: var(--color-card-bg);
+  margin-left: 0.5rem;
+  border: 1px solid var(--color-border);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
-  
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+
   svg {
     stroke: currentColor !important;
     width: 18px;
@@ -196,23 +444,25 @@
   }
 
   &.btn-edit {
-    color: #1976d2;
-    
+    color: var(--color-primary);
+
     &:hover {
       background: #e3f2fd;
     }
   }
-  
+
   &.btn-delete {
     color: #d32f2f;
-    
+
     &:hover {
       background: #ffebee;
     }
   }
 }
 
-// Alert
+/* -----------------------------------------------------
+   ALERT
+----------------------------------------------------- */
 .alert {
   padding: 1rem 1.5rem;
   border-radius: 8px;
@@ -221,13 +471,13 @@
   align-items: center;
   gap: 0.75rem;
   position: relative;
-  
+
   &.alert-error {
     background: #ffebee;
     color: #c62828;
     border-left: 4px solid #d32f2f;
   }
-  
+
   .btn-close {
     margin-left: auto;
     background: none;
@@ -236,182 +486,45 @@
     cursor: pointer;
     color: inherit;
     opacity: 0.7;
-    
+
     &:hover {
       opacity: 1;
     }
   }
 }
 
-// Status Tabs
-.status-tabs {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
-  
-  .tab-btn {
-    padding: 0.75rem 1.5rem;
-    border: none;
-    background: #f5f5f5;
-    border-radius: 8px;
-    font-size: 0.875rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    color: #666;
-    
-    &.active {
-      background: #1a1a1a;
-      color: white;
-    }
-    
-    &:hover:not(.active) {
-      background: #e0e0e0;
-    }
-  }
-}
-
-// Checkbox
+/* -----------------------------------------------------
+   CHECKBOX
+----------------------------------------------------- */
 .checkbox-input {
   width: 18px;
   height: 18px;
   cursor: pointer;
-  accent-color: #1976d2;
+  accent-color: var(--color-primary);
 }
 
-/* Added for Indeterminate State */
 .checkbox-input[type="checkbox"]:indeterminate {
-    background-color: #1976d2;
-    border-color: #1976d2;
-    box-shadow: none;
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="2" fill="white"/></svg>');
-    background-size: 100%;
-    background-position: center;
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  box-shadow: none;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="2" fill="white"/></svg>');
+  background-size: 100%;
+  background-position: center;
 }
 
-
-// Table Container
 /* -----------------------------------------------------
-   USER TABLE — EXACT MATCH TO PENDING APPROVALS
+   USER NAVIGATION CHIPS (For Multi-User Edit)
 ----------------------------------------------------- */
-
-.table-container {
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-  border: 1px solid #f0f0f0;
-  overflow: hidden;
-  padding: 0;
-}
-
-/* TABLE ALIGNMENT + FONTS + SPACING */
-.users-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 14px;
-
-  thead th {
-    padding: 14px 18px;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    color: #6b7280;
-    border-bottom: 2px solid #f3f4f6;
-  }
-
-  tbody td {
-    padding: 16px 18px;
-    font-size: 14px;
-    font-weight: 500;
-    color: #374151;
-    border-bottom: 1px solid #f3f4f6;
-    vertical-align: middle;
-  }
-
-  tbody tr:hover {
-    background-color: #fafbfc;
-  }
-}
-
-/* ALIGN ACTIONS COLUMN EXACTLY LIKE PENDING APPROVALS */
-.users-table th.text-right,
-.users-table td.actions-cell {
-  text-align: right !important;
-  width: 120px !important;
-  padding-right: 18px !important;
-  white-space: nowrap;
-}
-
-/* USER AVATAR MATCHES SPACING */
-.user-cell {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-
-  .user-avatar {
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-weight: 600;
-  }
-}
-
-/* STATUS BADGE EXACTLY LIKE PENDING APPROVALS */
-.status-badge {
-  padding: 6px 14px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
-  display: inline-flex;
-
-  &.status-active {
-    background: #d8f5d0;
-    color: #256029;
-  }
-
-  &.status-inactive {
-    background: #ffd6d6;
-    color: #b40000;
-  }
-}
-
-/* ACTION BUTTONS (ICONS) — SAME AS PENDING APPROVALS */
-.btn-icon {
-  width: 38px !important;
-  height: 38px !important;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  background: white;
-  margin: 0 4px !important;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: 0.2s;
-
-  svg {
-    width: 18px;
-    height: 18px;
-  }
-
-  &:hover {
-    background: #f3f4f6;
-    border-color: #d1d5db;
-    transform: translateY(-1px);
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
-}
-
 .user-navigation {
   margin-bottom: 1.5rem;
+  
+  .nav-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.75rem;
+  }
 }
 
 .user-chips {
@@ -423,46 +536,62 @@
 .user-chip {
   display: flex;
   align-items: center;
-  gap: 0.55rem;
-  padding: 0.5rem 1rem;
-  background: #f3f3f7;
+  gap: 0.75rem;
+  padding: 0.75rem 1.25rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   border-radius: 12px;
-  border: 1px solid #ddd;
+  border: 2px solid #dee2e6;
   cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 0.875rem;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 0.9rem;
   font-weight: 500;
-}
+  color: #495057;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 
-.user-chip:hover {
-  background: #ececff;
-  border-color: #8c6fd0;
-}
+  &:hover {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    border-color: var(--color-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
+  }
 
-.user-chip.active {
-  background: #8c6fd0;
-  color: white;
-  border-color: #8c6fd0;
+  &.active {
+    background: linear-gradient(135deg, var(--color-primary) 0%, #0056b3 100%);
+    color: white;
+    border-color: var(--color-primary);
+    box-shadow: 0 4px 16px rgba(0, 123, 255, 0.4);
+    transform: scale(1.05);
+    
+    .chip-avatar {
+      background: rgba(255, 255, 255, 0.3);
+      border: 2px solid rgba(255, 255, 255, 0.5);
+    }
+  }
 }
 
 .chip-avatar {
-  width: 28px;
-  height: 28px;
-  background: #764ba2;
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   font-weight: 600;
+  font-size: 0.875rem;
   display: flex;
   justify-content: center;
   align-items: center;
   border-radius: 50%;
+  flex-shrink: 0;
+  transition: all 0.25s ease;
 }
 
-// User Cell
+/* -----------------------------------------------------
+   USER CELL
+----------------------------------------------------- */
 .user-cell {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  
+
   .user-avatar {
     width: 40px;
     height: 40px;
@@ -475,10 +604,10 @@
     font-weight: 600;
     font-size: 1rem;
   }
-  
+
   .user-name {
     font-weight: 500;
-    color: #1a1a1a;
+    color: var(--color-dark);
   }
 }
 
@@ -486,7 +615,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  
+
   .user-avatar-sm {
     width: 32px;
     height: 32px;
@@ -501,13 +630,9 @@
   }
 }
 
-// Role Text (plain text, no badge)
-.role-text {
-  color: #333;
-  font-weight: 500;
-}
-
-// Status Badges
+/* -----------------------------------------------------
+   STATUS BADGES
+----------------------------------------------------- */
 .status-badge {
   display: inline-flex;
   align-items: center;
@@ -516,49 +641,34 @@
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: capitalize;
-  
+
   &.status-active {
     background: #e8f5e9;
     color: #2e7d32;
   }
-  
+
   &.status-inactive {
     background: #ffebee;
     color: #c62828;
   }
 }
 
-// Action Buttons
-.action-buttons {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: flex-end;
-}
-
-/* Floating Action Buttons */
-.action-buttons-float {
-    position: fixed;
-    bottom: 2rem;
-    right: 2rem;
-    z-index: 100;
-    display: flex;
-    gap: 1rem;
-}
-
-// Pagination
+/* -----------------------------------------------------
+   PAGINATION
+----------------------------------------------------- */
 .pagination {
   padding: 1.5rem;
   display: flex;
   justify-content: center;
   align-items: center;
   border-top: 1px solid #e0e0e0;
-  
+
   .pagination-controls {
     display: flex;
     gap: 0.5rem;
     align-items: center;
   }
-  
+
   .btn-pagination {
     padding: 0.5rem 0.75rem;
     border: 1px solid #e0e0e0;
@@ -567,45 +677,47 @@
     font-size: 0.875rem;
     cursor: pointer;
     transition: all 0.2s;
-    
+
     &:hover:not(:disabled):not(.active) {
       background: #f5f5f5;
-      border-color: #1976d2;
+      border-color: var(--color-primary);
     }
-    
+
     &:disabled {
       opacity: 0.5;
       cursor: not-allowed;
     }
-    
+
     &.active {
-      background: #1976d2;
+      background: var(--color-primary);
       color: white;
-      border-color: #1976d2;
+      border-color: var(--color-primary);
     }
   }
-  
+
   .pagination-ellipsis {
     padding: 0 0.5rem;
     color: #999;
   }
 }
 
-// Loading State
+/* -----------------------------------------------------
+   LOADING STATE
+----------------------------------------------------- */
 .loading-state {
   padding: 4rem 2rem;
   text-align: center;
-  
+
   .spinner {
     width: 50px;
     height: 50px;
     margin: 0 auto 1rem;
     border: 3px solid #f3f3f3;
-    border-top: 3px solid #1976d2;
+    border-top: 3px solid var(--color-primary);
     border-radius: 50%;
     animation: spin 1s linear infinite;
   }
-  
+
   p {
     color: #666;
     font-size: 0.875rem;
@@ -617,48 +729,37 @@
   100% { transform: rotate(360deg); }
 }
 
-// Empty State
+/* -----------------------------------------------------
+   EMPTY STATE
+----------------------------------------------------- */
 .empty-state {
   padding: 4rem 2rem;
   text-align: center;
-  
+
   svg {
     color: #ccc;
     margin-bottom: 1.5rem;
   }
-  
+
   h3 {
     color: #333;
     margin: 0 0 0.5rem 0;
     font-size: 1.25rem;
   }
-  
+
   p {
     color: #666;
     margin: 0 0 1.5rem 0;
   }
 }
 
-// Modal
+/* -----------------------------------------------------
+   MODAL
+----------------------------------------------------- */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.5);
-  backdrop-filter: blur(4px);
-  display: flex !important;
-  justify-content: center !important;
-  align-items: flex-start !important;
-  padding-top: 40px;
-  z-index: 9999 !important;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  animation: fadeIn 0.2s ease-out;
-}
-
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
   display: flex !important;
   justify-content: center !important;
@@ -681,8 +782,8 @@
   display: flex;
   flex-direction: column;
   animation: modalSlideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05);
-  
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
+
   .modal-header {
     padding: 1.75rem 2rem;
     background: white;
@@ -691,17 +792,17 @@
     align-items: center;
     position: relative;
     border-bottom: 1px solid #e8eaed;
-    
+
     h2 {
       margin: 0;
       font-size: 1.5rem;
       font-weight: 600;
-      color: #1a1a1a;
+      color: var(--color-dark);
       display: flex;
       align-items: center;
       gap: 0.75rem;
     }
-    
+
     .btn-close {
       background: #f5f5f5;
       border: none;
@@ -717,7 +818,7 @@
       align-items: center;
       justify-content: center;
       transition: all 0.2s;
-      
+
       &:hover {
         background: #e0e0e0;
         color: #333;
@@ -725,14 +826,13 @@
       }
     }
   }
-  
+
   .modal-body {
     padding: 2rem;
     overflow-y: auto;
     background: white;
   }
-  
-  /* Modal Actions for Add User (Left-aligned) */
+
   .modal-actions {
     display: flex;
     gap: 0.75rem;
@@ -741,8 +841,7 @@
     padding-top: 2rem;
     border-top: 2px solid #e0e0e0;
   }
-  
-  /* Modal Actions for Edit User (Right-aligned to match screenshot) */
+
   .modal-actions-right {
     display: flex;
     gap: 0.75rem;
@@ -753,10 +852,12 @@
   }
 }
 
-// Form Elements
+/* -----------------------------------------------------
+   FORM ELEMENTS
+----------------------------------------------------- */
 .form-group {
   margin-bottom: 1.5rem;
-  
+
   label {
     display: block;
     margin-bottom: 0.5rem;
@@ -764,24 +865,28 @@
     font-weight: 600;
     color: #333;
   }
-  
-  .form-input, .form-select {
+
+  .form-input,
+  .form-select {
     width: 100%;
     padding: 0.75rem 1rem;
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--color-border);
     border-radius: 8px;
     font-size: 0.875rem;
     transition: all 0.2s;
-    
+    font-family: var(--font-family-base);
+
     &:focus {
       outline: none;
-      border-color: #1976d2;
-      box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
     }
   }
 }
 
-// Radio buttons
+/* -----------------------------------------------------
+   RADIO BUTTONS
+----------------------------------------------------- */
 .radio-row {
   display: flex;
   flex-wrap: wrap;
@@ -808,7 +913,7 @@
   appearance: none;
   width: 18px;
   height: 18px;
-  border: 2px solid #8c6fd0;
+  border: 2px solid var(--color-primary);
   border-radius: 50%;
   display: grid;
   place-items: center;
@@ -823,7 +928,7 @@
   height: 10px;
   border-radius: 50%;
   transform: scale(0);
-  background: #8c6fd0;
+  background: var(--color-primary);
   transition: 0.2s ease-in-out;
 }
 
@@ -837,9 +942,31 @@
   font-weight: 500;
 }
 
+/* -----------------------------------------------------
+   FLOATING ACTION BUTTONS
+----------------------------------------------------- */
+.action-buttons-float {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 100;
+  display: flex;
+  gap: 1rem;
+}
 
-// Animations
-@keyframes slideUp {
+/* -----------------------------------------------------
+   ANIMATIONS
+----------------------------------------------------- */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalSlideUp {
   from {
     transform: translateY(20px);
     opacity: 0;
@@ -850,62 +977,59 @@
   }
 }
 
-// Responsive
-@media (max-width: 768px) {
+/* -----------------------------------------------------
+   RESPONSIVE
+----------------------------------------------------- */
+@media (max-width: $tablet) {
   .users-container {
-    padding: 1rem;
-    padding-bottom: 5rem;
-    
+    padding: 1.5rem 1rem;
   }
-  
-  .page-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-  
-  .status-tabs {
-    flex-wrap: wrap;
-  }
-  
+
   .users-table {
-    display: block;
-    overflow-x: auto;
+    font-size: 0.85rem;
+    min-width: 600px; /* Ensure mobile scroll works */
+    
+    thead th {
+      padding: 0.75rem 0.5rem;
+      font-size: 0.65rem;
+    }
+    
+    tbody td {
+      padding: 0.75rem 0.5rem;
+    }
   }
-  
+
   .modal {
     width: 95%;
     max-width: none;
   }
-  
+
   .radio-row {
     flex-direction: column;
     gap: 1rem;
   }
-  
+
   .action-buttons-float {
     bottom: 1rem;
     right: 1rem;
   }
+  
+  .user-cell {
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      font-size: 0.875rem;
+    }
+    
+    .user-name {
+      font-size: 0.85rem;
+    }
+  }
 }
 
-/* ============================================================
-   FINAL — MODERN + CLEAN PREVIEW TABLE (THE WORKING VERSION)
-   ============================================================ */
-
-/* ================================
-   GRID COLUMN SYSTEM (MATCHES HEADER + ROWS)
-   ================================ */
-
-.col-employee { width: 28%; min-width: 160px; display: flex; align-items: center; gap: 0.5rem; }
-.col-email    { width: 34%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.col-role     { width: 18%; }
-.col-status   { width: 18%; display: flex; justify-content: flex-start; }
-
-/* ================================
-   TABLE CONTAINER
-   ================================ */
-
+/* -----------------------------------------------------
+   PREVIEW TABLE (For User Import)
+----------------------------------------------------- */
 .preview-table {
   width: 100%;
   margin-top: 1rem;
@@ -913,10 +1037,6 @@
   flex-direction: column;
   gap: 8px;
 }
-
-/* ================================
-   HEADER
-   ================================ */
 
 .preview-header {
   display: flex;
@@ -927,67 +1047,276 @@
   border-bottom: 1px solid #ddd;
 }
 
-/* ================================
-   ROWS
-   ================================ */
-
 .preview-row {
   display: flex;
   align-items: center;
   background: white;
   padding: 14px 16px;
   border-radius: 10px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   transition: 0.15s;
   cursor: pointer;
+
+  &:hover {
+    background: #f5f3ff;
+    box-shadow: 0 2px 6px rgba(120, 80, 255, 0.15);
+  }
+
+  &.active {
+    background: #efeaff !important;
+    box-shadow: 0 0 0 2px #cfc2ff inset !important;
+  }
 }
 
-.preview-row:hover {
-  background: #f5f3ff;
-  box-shadow: 0 2px 6px rgba(120,80,255,0.15);
-}
-
-.preview-row.active {
-  background: #efeaff !important;
-  box-shadow: 0 0 0 2px #cfc2ff inset !important;
-}
-
-/* ================================
-   AVATAR
-   ================================ */
-
-.user-avatar-sm {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: linear-gradient(140deg, #667eea, #764ba2);
+.col-employee {
+  width: 28%;
+  min-width: 160px;
   display: flex;
-  justify-content: center;
   align-items: center;
-  color: white;
-  font-weight: 600;
-  font-size: 0.85rem;
+  gap: 0.5rem;
 }
 
-/* ================================
-   STATUS BADGE
-   ================================ */
-
-.status-badge {
-  padding: 6px 14px;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
+.col-email {
+  width: 34%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.status-active {
-  background: #e8f5e9;
-  color: #2e7d32;
+.col-role {
+  width: 18%;
 }
 
-.status-inactive {
-  background: #ffebee;
-  color: #c62828;
+.col-status {
+  width: 18%;
+  display: flex;
+  justify-content: flex-start;
+}
+
+/* =====================================================
+   SUPER COMPACT MOBILE MODE — SHOW MORE ROWS
+   Max-width: 640px
+===================================================== */
+@media (max-width: 640px) {
+
+  /* ---- Move Add/Edit buttons above table ---- */
+  .action-buttons-float {
+    position: static !important;
+    margin-bottom: 0.5rem !important;
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+  }
+
+  .action-buttons-float button {
+    padding: 0.4rem 0.8rem !important;
+    font-size: 0.75rem !important;
+  }
+
+  /* ---- EXTREMELY COMPACT TABLE ---- */
+  .users-table {
+    min-width: 100% !important;
+    font-size: 0.72rem !important;
+    line-height: 1rem !important;
+  }
+
+  /* Smaller row height */
+  .users-table thead th,
+  .users-table tbody td {
+    padding: 0.35rem 0.3rem !important; /* SUPER compact */
+  }
+
+  /* Avatar small */
+  .user-cell .user-avatar {
+    width: 22px !important;
+    height: 22px !important;
+    font-size: 0.65rem !important;
+  }
+
+  /* User name small */
+  .user-cell .user-name {
+    font-size: 0.72rem !important;
+    line-height: 0.95rem !important;
+  }
+
+  /* Email tiny */
+  .email-cell {
+    font-size: 0.7rem !important;
+  }
+
+  /* Status badge compact */
+  .status-badge {
+    padding: 0.2rem 0.45rem !important;
+    font-size: 0.65rem !important;
+  }
+
+  /* Action icons smallest version */
+  .btn-icon {
+    width: 1.4rem !important;
+    height: 1.4rem !important;
+    margin-left: 0.2rem !important;
+
+    svg {
+      width: 12px !important;
+      height: 12px !important;
+    }
+  }
+
+  /* Table container scroll remains visible */
+  .table-container {
+    overflow-x: auto !important;
+    margin-top: 0.3rem !important;
+  }
+}
+/* =====================================================
+   MOBILE — MAKE ADD/EDIT USER MODAL SMALLER
+   Max-width: 640px
+===================================================== */
+@media (max-width: 640px) {
+
+  .modal {
+    width: 90% !important;               /* Smaller width */
+    max-width: 380px !important;         /* Prevent huge modal */
+    max-height: 70vh !important;         /* Reduce height */
+    border-radius: 14px !important;
+  }
+
+  .modal-header {
+    padding: 1rem 1.2rem !important;     /* Smaller header */
+  }
+
+  .modal-header h2 {
+    font-size: 1.1rem !important;
+  }
+
+  .modal-body {
+    padding: 1rem 1.2rem !important;     /* Less padding inside */
+  }
+
+  .form-group {
+    margin-bottom: 0.8rem !important;    /* Make form tighter */
+  }
+
+  .form-input,
+  .form-select {
+    padding: 0.55rem 0.8rem !important;  /* Smaller input height */
+    font-size: 0.85rem !important;
+  }
+
+  /* Radio buttons spacing */
+  .radio-row {
+    gap: 0.5rem !important;
+  }
+
+  .radio-label span {
+    font-size: 0.85rem !important;
+  }
+
+  .modal-actions,
+  .modal-actions-right {
+    margin-top: 1rem !important;
+    padding-top: 1rem !important;
+  }
+}
+/* =====================================================
+   MOBILE — FIX MULTI-USER SELECT CHIP SIZE
+===================================================== */
+@media (max-width: 640px) {
+
+  /* Container holding the user chips */
+  .user-chips {
+    gap: 0.5rem !important;
+  }
+
+  /* Each selected user chip */
+  .user-chip {
+    padding: 0.4rem 0.7rem !important;      /* Smaller height */
+    border-radius: 8px !important;
+    font-size: 0.75rem !important;          /* Smaller text */
+    gap: 0.4rem !important;
+  }
+
+  /* Name text inside chip */
+  .user-chip span {
+    font-size: 0.75rem !important;
+    font-weight: 500 !important;
+  }
+
+  /* Avatar circle inside chip */
+  .chip-avatar {
+    width: 26px !important;
+    height: 26px !important;
+    font-size: 0.8rem !important;
+  }
+
+  /* ACTIVE chip (blue one) */
+  .user-chip.active {
+    transform: scale(1) !important;         /* Remove huge enlarge */
+    padding: 0.45rem 0.75rem !important;
+  }
+
+  .user-chip.active .chip-avatar {
+    width: 26px !important;
+    height: 26px !important;
+  }
+}
+/* =====================================================
+   MOBILE — FIX USER SELECTION TABLE INSIDE MODAL
+===================================================== */
+@media (max-width: 640px) {
+
+  /* Table wrapper inside modal */
+  .preview-table,
+  .users-selection-table,
+  .modal .users-table {
+    font-size: 0.75rem !important;
+  }
+
+  /* Reduce row height */
+  .modal .users-table td,
+  .modal .users-table th {
+    padding: 0.4rem 0.5rem !important;
+  }
+
+  /* Reduce avatar size inside modal table */
+  .modal .user-avatar,
+  .modal .user-avatar-sm {
+    width: 26px !important;
+    height: 26px !important;
+    font-size: 0.75rem !important;
+  }
+
+  /* User name smaller */
+  .modal .user-name {
+    font-size: 0.78rem !important;
+  }
+
+  /* Email cell smaller */
+  .modal .email-cell {
+    font-size: 0.72rem !important;
+  }
+
+  /* Status badge small */
+  .modal .status-badge {
+    padding: 2px 6px !important;
+    font-size: 0.65rem !important;
+  }
+
+  /* Highlighted row (active selection) */
+  .modal .users-table tr.active,
+  .modal .preview-row.active {
+    padding: 0.4rem !important;
+    border-left: 3px solid #3b82f6 !important;
+  }
+
+  /* Remove large rounded corners & spacing */
+  .modal .preview-row {
+    padding: 0.6rem !important;
+    border-radius: 6px !important;
+  }
+
+  /* Scroll area cleanup */
+  .modal .users-table {
+    min-width: 100% !important;
+  }
 }

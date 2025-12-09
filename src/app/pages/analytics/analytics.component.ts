@@ -38,6 +38,13 @@ export class AnalyticsComponent implements OnInit, AfterViewInit, OnDestroy {
   avgTimePerChat: AnalyticsMetric = { value: 120, unit: 's', change: 2, trend: 'up' };
   avgMessagesPerChat: AnalyticsMetric = { value: 16, change: 2, trend: 'up' };
 
+  // KPI trend data for mini charts
+  kpiTrendData = {
+    interactions: [320, 318, 322, 324, 326],
+    time: [115, 117, 118, 119, 120],
+    messages: [14, 15, 15, 16, 16]
+  };
+
   // ---------------- SESSION DONUT ----------------
   sessionData: SessionStatus = {
     active: { percentage: 90, colorStart: '#10b981', colorEnd: '#10b981' },
@@ -46,7 +53,12 @@ export class AnalyticsComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // ---------------- CHART CONFIG ----------------
   @ViewChild('chartCanvas') chartCanvas!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('interactionChart') interactionChart!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('timeChart') timeChart!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('messageChart') messageChart!: ElementRef<HTMLCanvasElement>;
+  
   chart?: Chart;
+  miniCharts: { [key: string]: Chart } = {};
 
   selectedYear = '2022';
   years = ['2019', '2020', '2021', '2022', '2023'];
@@ -202,11 +214,81 @@ export class AnalyticsComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit(): void {}
 
   ngAfterViewInit(): void {
-    setTimeout(() => this.buildChart(), 0);
+    setTimeout(() => {
+      this.buildChart();
+      this.buildMiniCharts();
+    }, 0);
   }
 
   ngOnDestroy(): void {
     if (this.chart) this.chart.destroy();
+    Object.values(this.miniCharts).forEach(chart => chart.destroy());
+  }
+
+  // Helper to get a transparent color for the fill
+  private getTransparentColor(hex: string, alpha: number): string {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
+  // ---------------- MINI CHARTS FOR KPI CARDS ----------------
+  buildMiniCharts() {
+    this.buildMiniChart('interaction', this.interactionChart, this.kpiTrendData.interactions, '#dc2626');
+    this.buildMiniChart('time', this.timeChart, this.kpiTrendData.time, '#059669');
+    this.buildMiniChart('message', this.messageChart, this.kpiTrendData.messages, '#059669');
+  }
+
+  buildMiniChart(key: string, chartRef: ElementRef<HTMLCanvasElement>, data: number[], color: string) {
+    if (!chartRef?.nativeElement) return;
+    
+    const ctx = chartRef.nativeElement.getContext('2d')!;
+    if (this.miniCharts[key]) this.miniCharts[key].destroy();
+    
+    const fillColor = this.getTransparentColor(color, 0.2); // 20% opacity fill
+
+    const config: ChartConfiguration = {
+      type: 'line',
+      data: {
+        labels: ['', '', '', '', ''],
+        datasets: [{
+          data: data,
+          borderColor: color,
+          backgroundColor: fillColor, // NEW: Use transparent color for fill to create an area chart
+          fill: 'start', // NEW: Start filling from the bottom
+          borderWidth: 2,
+          tension: 0.4,
+          pointRadius: 2, // NEW: Subtle point on the line
+          pointBackgroundColor: color,
+          pointBorderColor: '#fff',
+          pointBorderWidth: 1,
+          pointHoverRadius: 5 // NEW: Larger radius on hover for interaction
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { // NEW: Enable tooltips with better styling for KPI cards
+            enabled: true,
+            mode: 'index',
+            intersect: false,
+            displayColors: false,
+            bodyFont: { size: 14, weight: 'bold' },
+            titleFont: { size: 12 },
+            padding: 8
+          }
+        },
+        scales: {
+          x: { display: false },
+          y: { display: false }
+        }
+      }
+    };
+
+    this.miniCharts[key] = new Chart(ctx, config);
   }
 
   // ---------------- DONUT MATH ----------------
