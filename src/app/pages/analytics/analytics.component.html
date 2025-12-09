@@ -1,26 +1,36 @@
 <div class="page">
 
-  <main class="main" [class.main--collapsed]="sidebarCollapsed">
+  <!-- MAIN CONTENT -->
+  <main class="main">
 
+    <!-- PAGE HEADER -->
     <header class="main__header">
       <h1 class="main__title">Admin Analytics Dashboard</h1>
     </header>
 
+    <!-- =======================
+         STATS ROW
+    ======================== -->
     <div class="stats-row">
 
+      <!-- USER SESSION CARD -->
       <div class="stat-card stat-card--user-session">
         <h3 class="stat-card__title">User Session</h3>
 
         <div class="user-session">
 
+          <!-- DONUT CHART -->
           <svg class="user-session__chart" viewBox="0 0 160 160">
+
+            <!-- Inactive Track -->
             <circle 
-              cx="80" cy="80" r="70" 
-              fill="none" 
-              [attr.stroke]="sessionData.inactive.color" 
+              cx="80" cy="80" r="70"
+              fill="none"
+              [attr.stroke]="sessionData.inactive.color"
               stroke-width="12"
-            />
-            
+            ></circle>
+
+            <!-- Active Track -->
             <circle 
               cx="80" cy="80" r="70"
               fill="none"
@@ -30,14 +40,15 @@
               [attr.stroke-dashoffset]="getActiveOffset()"
               transform="rotate(-90 80 80)"
               stroke-linecap="round"
-            />
+            ></circle>
 
+            <!-- Center Icon -->
             <image 
-                xlink:href="assets\png-transparent-computer-icons-user-login-others-miscellaneous-share-icon-advanina-group-thumbnail-removebg-preview.png" 
-                x="50" 
-                y="50" 
-                height="60" 
-                width="60"
+              href="/assets/group.svg"
+              x="50"
+              y="50"
+              height="60"
+              width="60"
             />
 
             <defs>
@@ -46,34 +57,40 @@
                 <stop offset="100%" [attr.stop-color]="sessionData.active.colorEnd"/>
               </linearGradient>
             </defs>
+
           </svg>
 
+          <!-- LEGEND -->
           <div class="user-session__legend">
 
-            <div class="legend-item legend-item--active">
-                <span class="legend-dot legend-dot--green"></span>
-                <span class="legend-label">Active</span>
-                <span class="legend-value legend-value--green">{{ sessionData.active.percentage }}%</span> 
+            <div class="legend-item">
+              <span class="legend-dot legend-dot--green"></span>
+              <span class="legend-label">Active</span>
+              <span class="legend-value">{{ sessionData.active.percentage }}%</span>
             </div>
 
             <div class="legend-item">
-                <span class="legend-dot legend-dot--red"></span>
-                <span class="legend-label">Inactive</span>
-                <span class="legend-value legend-value--red">{{ sessionData.inactive.percentage }}%</span>
+              <span class="legend-dot legend-dot--red"></span>
+              <span class="legend-label">Inactive</span>
+              <span class="legend-value">{{ sessionData.inactive.percentage }}%</span>
             </div>
 
-        </div>
+          </div>
+
         </div>
       </div>
 
+      <!-- =======================
+           KPI CARDS
+      ======================== -->
       <div class="kpi-grid">
-        
+
+        <!-- TOTAL INTERACTION -->
         <div class="stat-card">
           <div class="stat-card__header">
-            <span class="stat-card__icon">💬</span>
+            <img class="stat-card__icon-img" src="/assets/interactivity.svg" alt="" />
             <span class="stat-card__label">Total Interaction</span>
           </div>
-
           <div class="stat-card__value">
             {{ totalInteractions.value }}
             <span class="stat-card__change stat-card__change--down">
@@ -82,48 +99,53 @@
           </div>
         </div>
 
+        <!-- AVG TIME PER CHAT -->
         <div class="stat-card">
           <div class="stat-card__header">
-            <span class="stat-card__icon">⏱️</span>
+            <img class="stat-card__icon-img" src="/assets/time-left.svg" alt="" />
             <span class="stat-card__label">Avg Time/Chat</span>
           </div>
-
           <div class="stat-card__value">
             {{ avgTimePerChat.value }}{{ avgTimePerChat.unit }}
             <span class="stat-card__change stat-card__change--up">+2%</span>
           </div>
         </div>
 
+        <!-- AVG MESSAGES -->
         <div class="stat-card">
           <div class="stat-card__header">
-            <span class="stat-card__icon">💬</span>
+            <img class="stat-card__icon-img" src="/assets/chat.svg" alt="" />
             <span class="stat-card__label">Avg Message/Chat</span>
           </div>
-
           <div class="stat-card__value">
             {{ avgMessagesPerChat.value }}
             <span class="stat-card__change stat-card__change--up">+2%</span>
           </div>
         </div>
-        
-      </div>
 
+      </div>
     </div>
 
+    <!-- =======================
+         CONTENT ROW
+    ======================== -->
     <div class="content-row">
 
+      <!-- QUICK ACCESS -->
       <div class="quick-access-card">
         <h3 class="card-title">Quick Access</h3>
 
         <div class="quick-access-grid">
           <button class="quick-access-item" *ngFor="let item of quickAccessItems">
-            <span class="quick-access-icon">{{ item.icon }}</span>
+            <img class="quick-access-icon" [src]="item.icon" alt="" />
             <span class="quick-access-label">{{ item.label }}</span>
           </button>
         </div>
       </div>
 
+      <!-- CHART CARD -->
       <div class="chart-card">
+
         <div class="chart-header">
           <h3 class="card-title">Queries over time</h3>
 
@@ -149,12 +171,15 @@
 
           <button class="download-btn" (click)="downloadChart()">Download PNG</button>
         </div>
+
       </div>
 
     </div>
 
+    <!-- =======================
+         USERS TABLE
+    ======================== -->
     <div class="users-card">
-
       <h3 class="card-title">Users</h3>
 
       <table class="users-table">
@@ -170,13 +195,19 @@
         </thead>
 
         <tbody>
-
           <tr *ngFor="let user of users; let i = index">
-            <td><input type="checkbox" [checked]="isUserSelected(i)" (change)="toggleUserSelection(i)" /></td>
+
+            <td>
+              <input
+                type="checkbox"
+                [checked]="isUserSelected(i)"
+                (change)="toggleUserSelection(i)"
+              />
+            </td>
 
             <td>
               <div class="user-cell">
-                <span class="user-avatar">{{ user.avatar }}</span>
+                <img class="user-avatar" [src]="user.avatar" />
                 <span class="user-name">{{ user.name }}</span>
               </div>
             </td>
@@ -185,18 +216,21 @@
             <td>{{ user.role }}</td>
 
             <td>
-              <span class="status-badge status-badge--active">{{ user.status }}</span>
+              <span class="status-badge status-badge--active">
+                {{ user.status }}
+              </span>
             </td>
 
             <td>
-              <button class="action-btn">⚙️</button>
+              <button class="action-btn">
+                <img src="/assets/gear.svg" class="action-icon" />
+              </button>
             </td>
 
           </tr>
-
         </tbody>
-      </table>
 
+      </table>
     </div>
 
   </main>

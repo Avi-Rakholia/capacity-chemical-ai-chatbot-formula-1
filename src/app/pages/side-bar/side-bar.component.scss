@@ -156,18 +156,40 @@ aside.collapsed .avatar-wrapper {
   }
 }
 
+/* ------------------------------------------------------
+   ✔ MOBILE FIX — KEEP EXACT DESKTOP BEHAVIOR ON MOBILE
+------------------------------------------------------ */
+/* ------------------------------------------------------
+   FINAL MOBILE FIX (No main shift, no overlay)
+------------------------------------------------------ */
 @media (max-width: 640px) {
+
+  /* Sidebar stays fixed but NEVER pushes content */
   aside {
     position: fixed;
     top: 0;
     left: 0;
     bottom: 0;
-    transform: translateX(-6px);
-    width: 280px;
+
+    width: 280px !important;
+    transform: translateX(0) !important;
     z-index: 1050;
+
+    overflow-y: auto;
+    overflow-x: hidden;
   }
+
   aside.collapsed {
-    transform: translateX(-100%);
-    width: 72px;
+    width: 72px !important;
+  }
+
+  /* MAIN CONTENT DOES NOT MOVE ON MOBILE */
+  aside ~ main {
+    margin-left: 0 !important;
+  }
+
+  /* Chevron stays correctly positioned */
+  .chevron-btn {
+    right: -16px !important;
   }
 }

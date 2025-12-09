@@ -1,15 +1,27 @@
-<div class="dashboard-container container">
-  <div class="grid-2x3">
-    @for (card of dashboardCards(); track card.title) {
-    <div 
-      class="dashboard-card"
-      (click)="navigateToCard(card)"
-    >
-      <!-- <i class="material-icons card-icon">{{card.icon}}</i> -->
-      <img [src]="card.iconUrl" alt="{{ card.title }}" class="img-fluid small-logo pb-3" />
-      <div class="card-title">{{ card.title }}</div>
-    </div>
-  }
-  </div>
-</div>
+<div class="dashboard-wrapper">
 
+  <div class="dashboard-grid">
+    @for (card of dashboardCards(); track card.title) {
+      
+      <div class="dashboard-card" (click)="navigateToCard(card)">
+        
+        <!-- ICON CIRCLE -->
+        <div class="icon-wrapper">
+          <img 
+            [src]="card.iconUrl" 
+            class="icon-img" 
+            alt="{{ card.title }}" 
+          />
+        </div>
+
+        <!-- TITLE LABEL -->
+        <div class="card-title">
+          {{ card.title }}
+        </div>
+
+      </div>
+
+    }
+  </div>
+
+</div>

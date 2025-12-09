@@ -18,19 +18,18 @@ export class SideBarComponent implements OnInit {
   private authService = inject(SupabaseAuthService);
   private router = inject(Router);
 
-  // Use auth service's current user signal directly
+  // Current Supabase user → signal
   currentUser = this.authService.currentUser;
+
   activeRoute = signal<string>('dashboard');
   profileMenuOpen = signal<boolean>(false);
 
-  // open state: true = expanded, false = collapsed
+  // Sidebar open (expanded) / collapsed
   open = signal<boolean>(true);
-
-  // Computed to switch styles in template
   isOpen = computed(() => this.open());
   isCollapsed = computed(() => !this.open());
 
-  // Mobile view detection
+  // Mobile view
   isMobileView = false;
 
   logoUrlExpanded = '/assets/capacity-chemical.svg';
@@ -41,38 +40,39 @@ export class SideBarComponent implements OnInit {
   ngOnInit() {
     this.checkWindowSize();
 
-    // Subscribe to user changes
+    // Auth listener → if no user, redirect to login
     this.authService.currentUser$.subscribe((user) => {
-      if (!user) {
-        this.router.navigate(['/login']);
-      }
+      if (!user) this.router.navigate(['/login']);
     });
 
+    // Active route tracking
     this.updateActiveRoute();
-    this.router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe(() => {
-      this.updateActiveRoute();
-    });
+    this.router.events
+      .pipe(filter((e) => e instanceof NavigationEnd))
+      .subscribe(() => this.updateActiveRoute());
   }
+
+  /* ---------------------------------------
+     SIDEBAR OPEN/COLLAPSE BEHAVIOR
+  --------------------------------------- */
 
   toggleOpen(): void {
     this.open.update((v) => !v);
-    if (!this.open()) {
-      this.profileMenuOpen.set(false);
-    }
+    if (!this.open()) this.profileMenuOpen.set(false);
   }
 
   setOpen(value: boolean) {
     this.open.set(value);
-    if (!value) {
-      this.profileMenuOpen.set(false);
-    }
+    if (!value) this.profileMenuOpen.set(false);
   }
+
+  /* ---------------------------------------
+     ROUTING
+  --------------------------------------- */
 
   navigateTo(route: string): void {
     this.router.navigate([route]).then(() => {
-      if (this.isMobileView) {
-        this.open.set(false);
-      }
+      if (this.isMobileView) this.open.set(false);
       this.profileMenuOpen.set(false);
       this.updateActiveRoute();
     });
@@ -80,6 +80,7 @@ export class SideBarComponent implements OnInit {
 
   private updateActiveRoute(): void {
     const currentUrl = this.router.url;
+
     if (currentUrl.includes('chatbot')) this.activeRoute.set('chatbot');
     else if (currentUrl.includes('resources')) this.activeRoute.set('resources');
     else if (currentUrl.includes('approvals')) this.activeRoute.set('approvals');
@@ -93,29 +94,31 @@ export class SideBarComponent implements OnInit {
     this.profileMenuOpen.update((open) => !open);
   }
 
+  /* ---------------------------------------
+     USER DISPLAY FUNCTIONS
+  --------------------------------------- */
+
   getUserDisplayName(): string {
     const user = this.currentUser();
     if (!user) return 'User';
 
-    const username = user.metadata?.username || user.metadata?.display_name;
-    if (username) return username;
+    const username =
+      user.metadata?.username ||
+      user.metadata?.display_name ||
+      user.email?.split('@')[0];
 
-    return user.email?.split('@')[0] || 'User';
+    return username || 'User';
   }
 
   getUserAvatar(): string {
     const user = this.currentUser();
+
     if (user?.metadata?.avatar) return user.metadata.avatar;
 
-    const displayName = this.getUserDisplayName();
-    const initials = displayName
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase();
+    const name = this.getUserDisplayName();
 
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(
-      displayName
+      name
     )}&background=3498db&color=fff&size=40`;
   }
 
@@ -132,24 +135,39 @@ export class SideBarComponent implements OnInit {
     return roleMap[user.role] || user.role;
   }
 
+  /* ---------------------------------------
+     ADMIN CHECK — used by sidebar + home page
+  --------------------------------------- */
   isAdmin(): boolean {
     const user = this.currentUser();
     return user?.role === 'nsight' || user?.role === 'capacity';
   }
 
+  /* OPTIONAL: Check if normal user */
+  isUser(): boolean {
+    const user = this.currentUser();
+    return user?.role === 'user';
+  }
+
+  /* ---------------------------------------
+     LOGOUT
+  --------------------------------------- */
   async logout(): Promise<void> {
     this.profileMenuOpen.set(false);
     await this.authService.logout();
     this.router.navigate(['/login']);
   }
 
-  onResize = () => {
-    this.checkWindowSize();
-  };
+  /* ---------------------------------------
+     RESPONSIVE BEHAVIOR
+  --------------------------------------- */
+  onResize = () => this.checkWindowSize();
 
   private checkWindowSize() {
     const w = window.innerWidth;
     this.isMobileView = w < 640;
+
+    // Auto-collapse sidebar on mobile
     this.open.set(!this.isMobileView);
   }
 }

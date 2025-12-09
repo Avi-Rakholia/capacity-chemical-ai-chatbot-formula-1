@@ -1,45 +1,127 @@
-.dashboard-container {
-  min-height: 100vh;          // full page height
+/* ----------------------------------------------------
+   FULL PAGE WRAPPER
+---------------------------------------------------- */
+.dashboard-wrapper {
+  width: 100%;
+  min-height: 100vh;
   display: flex;
-  justify-content: center;    // horizontal center
-  align-items: center;        // vertical center
+  justify-content: center;     /* center grid horizontally */
+  align-items: center;         /* center grid vertically */
+  padding: 2rem;
+  box-sizing: border-box;
 }
 
-.grid-2x3 {
+/* ----------------------------------------------------
+   GRID — EXACT 3x2 LIKE YOUR IMAGE
+---------------------------------------------------- */
+.dashboard-grid {
   display: grid;
-  grid-template-columns: repeat(3, max-content);
-  grid-template-rows: repeat(2, auto);
-  justify-content: center;   // pulls all columns toward the center
-  gap: 5rem 5rem;          // row gap = 5rem, column gap = 5rem
+  grid-template-columns: repeat(3, 220px);
+  grid-auto-rows: 220px;
+  gap: 3rem 3rem;               /* row-gap:3rem, column-gap:3rem */
+  justify-content: center;
+  align-content: center;
 }
 
+/* ----------------------------------------------------
+   CARD — EXACT STYLE FROM YOUR IMAGE
+---------------------------------------------------- */
 .dashboard-card {
   background: #f4f4f4;
-  padding: 1rem 1rem 1rem 1rem;
-  width: 150px;               // smaller width = tighter layout
-  border-radius: 12px;
-  text-align: center;
+  border-radius: 14px;
+  width: 220px;
+  height: 220px;
+  padding: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   cursor: pointer;
-  transition: all 0.2s ease-in-out;
-  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.08);
+
+  box-shadow: 0px 4px 12px rgba(0,0,0,0.12);
+  transition: 0.2s ease;
 
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0px 6px 16px rgba(0, 0, 0, 0.12);
+    transform: translateY(-6px);
+    box-shadow: 0px 8px 18px rgba(0,0,0,0.18);
+  }
+}
+
+/* ----------------------------------------------------
+   ICON CIRCLE BACKGROUND (Matches UI EXACT)
+---------------------------------------------------- */
+.icon-wrapper {
+  background: #e4e4e4;
+  width: 95px;
+  height: 95px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.icon-img {
+  width: 60px;
+  height: 60px;
+}
+
+/* ----------------------------------------------------
+   CARD TITLE — EXACT FROM IMAGE
+---------------------------------------------------- */
+.card-title {
+  background: #dcdcdc;
+  padding: 0.6rem 1rem;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #333;
+  text-align: center;
+  width: fit-content;
+}
+
+/* ----------------------------------------------------
+   RESPONSIVE LAYOUT (PERFECT)
+---------------------------------------------------- */
+
+/* TABLET — 2 Cards Per Row */
+@media (max-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(2, 200px);
+    gap: 2.5rem 2rem;
+  }
+}
+
+/* MOBILE — 1 Card Per Row */
+@media (max-width: 600px) {
+  .dashboard-wrapper {
+    padding: 1rem;
+    align-items: flex-start;
+    margin-top: 2rem;
   }
 
-  .card-icon {
-    width: 50px;
-    height: 50px;
-    margin-bottom: 1rem;
+  .dashboard-grid {
+    grid-template-columns: repeat(1, 1fr);
+    width: 100%;
+    gap: 2rem;
+  }
+
+  .dashboard-card {
+    width: 100%;
+    height: 200px;
+  }
+
+  .icon-wrapper {
+    width: 70px;
+    height: 70px;
+  }
+
+  .icon-img {
+    width: 45px;
+    height: 45px;
   }
 
   .card-title {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #333;
-    background-color: lightgray;
-    border-radius: 8px;
+    font-size: 0.9rem;
   }
 }
-
