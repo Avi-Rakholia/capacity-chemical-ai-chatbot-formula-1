@@ -1,8 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, OnInit, signal, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
+import { ApprovalService, Approval } from '../../services/approval.service';
+import { HttpClientModule } from '@angular/common/http';
 
-type RequestStatus = 'Pending' | 'Approved' | 'Rejected';
+type RequestStatus = 'Pending' | 'Approved' | 'Rejected' | 'Returned';
 type TabId = 'all' | 'formulas' | 'quotes';
 
 interface RequestRow {
@@ -14,17 +16,55 @@ interface RequestRow {
 }
 @Component({
   selector: 'app-approvals',
-  standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, HttpClientModule],
   templateUrl: './approvals.component.html',
   styleUrls: ['./approvals.component.scss'],
 })
-export class ApprovalsComponent {
+export class ApprovalsComponent implements OnInit {
+  private router = inject(Router);
+  private approvalService = inject(ApprovalService);
 
-  constructor(private router: Router) {}
-
+  // Signals for reactive state
+  approvals = signal<Approval[]>([]);
+  loading = signal(false);
+  error = signal<string | null>(null);
+  
   /* SIDEBAR COLLAPSE / EXPAND */
   sidebarCollapsed = false;
+
+  ngOnInit() {
+    this.loadApprovals();
+  }
+
+  loadApprovals() {
+    this.loading.set(true);
+    this.error.set(null);
+    
+    this.approvalService.getAllApprovals().subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          const apiData = Array.isArray(response.data) ? response.data : [response.data];
+          this.approvals.set(apiData);
+          
+          // Convert API data to RequestRow format
+          this.rows = apiData.map(approval => ({
+            id: approval.approval_id,
+            formula: approval.entity_name || `${approval.entity_type} #${approval.entity_id}`,
+            dateRequested: approval.request_date ? new Date(approval.request_date).toLocaleDateString('en-US') : new Date(approval.decision_date).toLocaleDateString('en-US'),
+            dateResponded: new Date(approval.decision_date).toLocaleDateString('en-US'),
+            status: approval.decision as RequestStatus
+          }));
+        }
+        this.loading.set(false);
+      },
+      error: (err) => {
+        this.error.set('Using dummy data - API unavailable');
+        this.loading.set(false);
+        console.warn('Could not load approvals from API, using dummy data:', err);
+        // Keep dummy data if API fails
+      }
+    });
+  }
 
   toggleSidebar() {
     this.sidebarCollapsed = !this.sidebarCollapsed;
@@ -119,11 +159,55 @@ export class ApprovalsComponent {
 
   /* ACTION BUTTONS */
   approve(row: RequestRow) {
-    row.status = 'Approved';
+    // Find the corresponding approval from the API data
+    const approval = this.approvals().find(a => a.approval_id === row.id);
+    if (approval) {
+      this.approvalService.updateApproval(approval.approval_id, { 
+        decision: 'Approved',
+        comments: 'Approved from UI'
+      }).subscribe({
+        next: (response) => {
+          if (response.success) {
+            row.status = 'Approved';
+            this.loadApprovals(); // Reload to get fresh data
+          }
+        },
+        error: (err) => {
+          console.error('Error approving:', err);
+          // Still update locally if API fails
+          row.status = 'Approved';
+        }
+      });
+    } else {
+      // Fallback for dummy data
+      row.status = 'Approved';
+    }
   }
 
   reject(row: RequestRow) {
-    row.status = 'Rejected';
+    // Find the corresponding approval from the API data
+    const approval = this.approvals().find(a => a.approval_id === row.id);
+    if (approval) {
+      this.approvalService.updateApproval(approval.approval_id, { 
+        decision: 'Rejected',
+        comments: 'Rejected from UI'
+      }).subscribe({
+        next: (response) => {
+          if (response.success) {
+            row.status = 'Rejected';
+            this.loadApprovals(); // Reload to get fresh data
+          }
+        },
+        error: (err) => {
+          console.error('Error rejecting:', err);
+          // Still update locally if API fails
+          row.status = 'Rejected';
+        }
+      });
+    } else {
+      // Fallback for dummy data
+      row.status = 'Rejected';
+    }
   }
 
   share(row: RequestRow) {
@@ -136,6 +220,7 @@ export class ApprovalsComponent {
       Pending: 'badge--pending',
       Approved: 'badge--approved',
       Rejected: 'badge--rejected',
+      Returned: 'badge--returned',
     }[status];
   }
 }
