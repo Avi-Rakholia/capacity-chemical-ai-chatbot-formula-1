@@ -10,7 +10,7 @@
       </svg>
     </button>
 
-    <div class="dropdown" *ngIf="menuOpen">
+    <div class="dropdown" *ngIf="menuOpen()">
       <div class="dropdown-item">
         <span class="item-icon">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -57,8 +57,8 @@
       Not sure where to start?
     </p>
 
-    <!-- Card Row -->
-    <div class="card-row">
+    <!-- Card Row - Show only when templates are visible -->
+    <div class="card-row" *ngIf="showTemplates()">
 
       <div class="card" (click)="onSearchFormula()">
         <div class="card-content">
@@ -102,10 +102,30 @@
     </div>
 
 
-    <!-- Chat Window -->
-    <div class="chat-window" *ngIf="messages.length > 0">
-      <div class="chat-bubble" *ngFor="let msg of messages">
-        {{ msg }}
+    <!-- Chat Window - Show after first message -->
+    <div class="chat-window" *ngIf="!showTemplates() && messages().length > 0">
+      <div *ngFor="let msg of messages()" [class]="msg.isUser ? 'chat-bubble user' : 'chat-bubble ai'">
+        
+        <!-- User message -->
+        <div *ngIf="msg.isUser" class="message-content">
+          <div class="message-text">{{ msg.prompt }}</div>
+          
+          <!-- Show attachments if any -->
+          <div *ngIf="msg.attachments && msg.attachments.length > 0" class="attachments">
+            <div *ngFor="let att of msg.attachments" class="attachment-item">
+              <span class="attachment-icon">📎</span>
+              <span class="attachment-name">{{ att.file_name }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI message -->
+        <div *ngIf="!msg.isUser" class="message-content">
+          <div class="message-text">
+            {{ msg.response || '' }}
+            <span *ngIf="msg.isStreaming" class="streaming-cursor">▊</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -116,13 +136,15 @@
       <input 
         type="text" 
         placeholder="Type your query here..." 
-        [(ngModel)]="userMessage" 
+        [value]="userMessage()"
+        (input)="userMessage.set($any($event.target).value)"
         (keyup.enter)="sendMessage()"
+        [disabled]="isStreaming()"
       />
 
       <!-- Attach Document Button -->
-      <button class="attach-btn" (click)="triggerFileInput()">
-        <img src="/assets/attach-document.svg" class="attach-icon" />
+      <button class="attach-btn" (click)="triggerFileInput()" [disabled]="isStreaming()">
+        <img src="/assets/attach-document.svg" class="attach-icon" alt="Attach" />
       </button>
 
       <!-- Hidden File Input -->
@@ -135,7 +157,7 @@
       />
 
       <!-- Send Button -->
-      <button class="send-btn" (click)="sendMessage()">
+      <button class="send-btn" (click)="sendMessage()" [disabled]="isStreaming() || !userMessage().trim()">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
           <path d="M2 10l16-8-8 16-2-8-6-0z" fill="currentColor"/>
         </svg>

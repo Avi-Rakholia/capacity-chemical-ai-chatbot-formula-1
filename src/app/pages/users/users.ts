@@ -19,14 +19,14 @@ class UserApiServiceMock {
   ];
 
   private mockUsers: UserWithRole[] = [
-    { user_id: 1, name: 'Harvey Spector', email: 'harvey@capacitychemicals.com', role_id: 1, role_name: 'Admin', status: 'Active', permissions: {} },
-    { user_id: 2, name: 'John Doe', email: 'john@capacitychemicals.com', role_id: 2, role_name: 'Researcher', status: 'Active', permissions: {} },
-    { user_id: 3, name: 'Harry Potter', email: 'harry@capacitychemicals.com', role_id: 2, role_name: 'Researcher', status: 'Inactive', permissions: {} },
-    { user_id: 4, name: 'Jhonny Depp', email: 'jhonny@capacitychemicals.com', role_id: 4, role_name: 'Sales', status: 'Active', permissions: {} },
-    { user_id: 5, name: 'Harry Potter', email: 'harry@capacitychemicals.com', role_id: 2, role_name: 'Researcher', status: 'Inactive', permissions: {} },
-    { user_id: 6, name: 'John Doe', email: 'john@capacitychemicals.com', role_id: 2, role_name: 'Researcher', status: 'Active', permissions: {} },
-    { user_id: 7, name: 'John Doe', email: 'john@capacitychemicals.com', role_id: 2, role_name: 'Researcher', status: 'Active', permissions: {} },
-    { user_id: 8, name: 'John Doe', email: 'john@capacitychemicals.com', role_id: 2, role_name: 'Researcher', status: 'Active', permissions: {} },
+    { user_id: 1, username: 'Harvey Spector', email: 'harvey@capacitychemicals.com', role_id: 1, role_name: 'Admin', status: 'Active', permissions: {} },
+    { user_id: 2, username: 'John Doe', email: 'john@capacitychemicals.com', role_id: 2, role_name: 'Researcher', status: 'Active', permissions: {} },
+    { user_id: 3, username: 'Harry Potter', email: 'harry@capacitychemicals.com', role_id: 2, role_name: 'Researcher', status: 'Inactive', permissions: {} },
+    { user_id: 4, username: 'Jhonny Depp', email: 'jhonny@capacitychemicals.com', role_id: 4, role_name: 'Sales', status: 'Active', permissions: {} },
+    { user_id: 5, username: 'Harry Potter', email: 'harry@capacitychemicals.com', role_id: 2, role_name: 'Researcher', status: 'Inactive', permissions: {} },
+    { user_id: 6, username: 'John Doe', email: 'john@capacitychemicals.com', role_id: 2, role_name: 'Researcher', status: 'Active', permissions: {} },
+    { user_id: 7, username: 'John Doe', email: 'john@capacitychemicals.com', role_id: 2, role_name: 'Researcher', status: 'Active', permissions: {} },
+    { user_id: 8, username: 'John Doe', email: 'john@capacitychemicals.com', role_id: 2, role_name: 'Researcher', status: 'Active', permissions: {} },
   ];
 
   getAllUsers(page: number, size: number, filters: any): any {
@@ -63,7 +63,7 @@ class UserApiServiceMock {
 
     const newUser: UserWithRole = {
       user_id: newId,
-      name: request.name,
+      username: request.username,
       email: request.email,
       role_id: request.role_id,
       role_name: roleName,
@@ -89,7 +89,7 @@ class UserApiServiceMock {
         }
       };
 
-    if (request.name !== undefined) user.name = request.name;
+    if (request.username !== undefined) user.username = request.username;
     if (request.email !== undefined) user.email = request.email;
     if (request.status !== undefined) user.status = request.status;
     if (request.role_id !== undefined) {
@@ -144,7 +144,7 @@ export class Users implements OnInit {
   currentEditIndex = signal(0);
 
   createForm = signal<CreateUserRequest>({
-    name: '',
+    username: '',
     email: '',
     role_id: 2,
     status: 'Active',
@@ -163,7 +163,7 @@ export class Users implements OnInit {
 
     if (query) {
       filtered = filtered.filter(user =>
-        user.name.toLowerCase().includes(query) ||
+        user.username.toLowerCase().includes(query) ||
         user.email.toLowerCase().includes(query) ||
         user.role_name.toLowerCase().includes(query)
       );
@@ -249,8 +249,8 @@ export class Users implements OnInit {
   toggleSort() {
     const sorted = [...this.users()].sort((a, b) =>
       this.sortAsc()
-        ? a.name.localeCompare(b.name)
-        : b.name.localeCompare(a.name)
+        ? a.username.localeCompare(b.username)
+        : b.username.localeCompare(a.username)
     );
 
     this.users.set(sorted);
@@ -293,7 +293,7 @@ export class Users implements OnInit {
   // -------------------------------------------------------------
   openCreateModal(): void {
     this.createForm.set({
-      name: '',
+      username: '',
       email: '',
       role_id: this.roles.find(r => r.name === 'Researcher')?.id || 1,
       status: 'Active',
@@ -338,7 +338,7 @@ export class Users implements OnInit {
     this.currentEditIndex.set(0);
 
     this.editForm.set({
-      name: user.name,
+      username: user.username,
       email: user.email,
       role_id: user.role_id,
       status: user.status
@@ -359,7 +359,7 @@ export class Users implements OnInit {
     this.currentEditIndex.set(0);
 
     this.editForm.set({
-      name: list[0].name,
+      username: list[0].username,
       email: list[0].email,
       role_id: list[0].role_id,
       status: list[0].status
@@ -377,7 +377,7 @@ export class Users implements OnInit {
     this.selectedUser.set(list[i]);
 
     this.editForm.set({
-      name: list[i].name,
+      username: list[i].username,
       email: list[i].email,
       role_id: list[i].role_id,
       status: list[i].status

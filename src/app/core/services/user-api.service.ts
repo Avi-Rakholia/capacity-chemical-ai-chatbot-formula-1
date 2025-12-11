@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 
 export interface User {
   user_id: number;
-  name: string;
+  username: string;
   email: string;
   role_id: number;
   last_login?: Date;
@@ -17,7 +17,7 @@ export interface UserWithRole extends User {
 }
 
 export interface CreateUserRequest {
-  name: string;
+  username: string;
   email: string;
   role_id: number;
   status?: 'Active' | 'Inactive';
@@ -25,7 +25,7 @@ export interface CreateUserRequest {
 }
 
 export interface UpdateUserRequest {
-  name?: string;
+  username?: string;
   email?: string;
   role_id?: number;
   status?: 'Active' | 'Inactive';

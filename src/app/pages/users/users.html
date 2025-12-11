@@ -119,9 +119,9 @@
               <td>
                 <div class="user-cell">
                   <div class="user-avatar">
-                    {{ user.name.charAt(0).toUpperCase() }}
+                    {{ user.username.charAt(0).toUpperCase() }}
                   </div>
-                  <span class="user-name">{{ user.name }}</span>
+                  <span class="user-name">{{ user.username }}</span>
                 </div>
               </td>
               <td class="email-cell">{{ user.email }}</td>
@@ -191,13 +191,13 @@
       <div class="modal-body">
         <form #createUserForm="ngForm" (ngSubmit)="createUser()"> 
           <div class="form-group">
-            <label for="create-name">Name (required)</label>
+            <label for="create-username">Username (required)</label>
             <input 
               type="text" 
-              id="create-name" 
+              id="create-username" 
               class="form-input"
-              [(ngModel)]="createForm().name"
-              name="name"
+              [(ngModel)]="createForm().username"
+              name="username"
               required
               placeholder="John Doe"
             />
@@ -295,8 +295,8 @@
                   (click)="switchEditUser(i)"
                   type="button"
                 >
-                  <div class="chip-avatar">{{ user.name.charAt(0).toUpperCase() }}</div>
-                  {{ user.name }}
+                  <div class="chip-avatar">{{ user.username.charAt(0).toUpperCase() }}</div>
+                  {{ user.username }}
                 </button>
               }
             </div>
@@ -306,13 +306,13 @@
         <form #editUserForm="ngForm" (ngSubmit)="updateUser()">
 
           <div class="form-group">
-            <label for="edit-name">Name (required)</label>
+            <label for="edit-username">Username (required)</label>
             <input 
-              id="edit-name"
+              id="edit-username"
               class="form-input"
               type="text"
-              [(ngModel)]="editForm().name"
-              name="name"
+              [(ngModel)]="editForm().username"
+              name="username"
               required
             />
           </div>
@@ -393,8 +393,8 @@
     >
       <div class="col-employee">
         <div class="user-cell-sm">
-          <div class="user-avatar-sm">{{ user.name.charAt(0) }}</div>
-          <span>{{ user.name }}</span>
+          <div class="user-avatar-sm">{{ user.username.charAt(0) }}</div>
+          <span>{{ user.username }}</span>
         </div>
       </div>
 
