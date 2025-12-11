@@ -1,0 +1,30 @@
+[33me509cdd[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mchanges[m[33m, [m[1;31morigin/changes[m[33m)[m Resolved merge by keeping his changes
+[33md013d2d[m some major UI changes And mobile responsiveness for all the pages
+[33m8b56bdc[m feat: implement resource upload functionality with modal and progress tracking
+[33m3e6ecdf[m Major UI updates across home, sidebar, chatbot, approvals, resources, and users components
+[33m6e1b514[m[33m ([m[1;31morigin/home[m[33m, [m[1;32mhome[m[33m)[m feat: add AnalyticsComponent with dynamic session data and chart functionality
+[33m5bea8be[m feat: Add resources page with search, filter, and upload functionality
+[33m5a5f689[m feat: Implement user management page with CRUD functionality
+[33m1f3b6b0[m basic chatbot page #7
+[33mf698e80[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m icon background update
+[33m70d1b44[m icons update
+[33m37a5320[m create account page validations
+[33m7b0babb[m updated modules and routes
+[33m020d5d5[m Merge branch 'main' of https://github.com/Avi-Rakholia/capacity-chemical-ai-chatbot-formula-1 into home
+[33m08975c6[m Merge pull request #5 from Avi-Rakholia/supabase
+[33mb2db475[m added modules and code refactor
+[33m88c8df0[m Refactor routing and enhance dashboard layout with new home component and placeholder for future pages
+[33m4df2396[m[33m ([m[1;31morigin/supabase[m[33m)[m Refactor dashboard component for improved user experience
+[33m622671f[m Integrate Supabase #4
+[33mcb89ce8[m Merge pull request #2 from Avi-Rakholia/ui-pages
+[33m8bd2045[m[33m ([m[1;31morigin/ui-pages[m[33m)[m create account page
+[33m13ac6a2[m Replace login page logo with new brand logo
+[33m029e22b[m UI enhanc
+[33mb626bd0[m login page enhancements
+[33m1059e00[m login page
+[33mbc238da[m uncomment
+[33mb12f146[m bring back app component #3
+[33ma72fa9d[m folder structure, initial bootstrap component and more
+[33m0cc4caf[m remove placeholder content in thje initial application structure #1
+[33mc68f9e1[m initial project setup #1
+[33m92b703d[m Initial commit

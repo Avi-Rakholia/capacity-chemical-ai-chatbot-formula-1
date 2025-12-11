@@ -1,9 +1,12 @@
 <div class="page">
-  
+
+  <!-- MAIN CONTENT -->
   <main class="main">
 
+    <!-- SEARCH BAR CENTERED -->
     <header class="main__header">
 
+      <div class="main__search-center">
         <div class="main__search">
           <span class="icon icon--search"></span>
           <input
@@ -17,64 +20,50 @@
         <button class="main__sort" (click)="toggleSort()">
           <span class="icon icon--sort"></span>
         </button>
-        
+      </div>
+
     </header>
 
-    <!-- ROW: TABS LEFT + UPLOAD BUTTON RIGHT -->
-<div class="tabs-upload-row">
+    <!-- TABS + UPLOAD BUTTON SAME ROW -->
+    <div class="tabs-upload-row">
 
-  <!-- LEFT: 4 TABS -->
-  <div class="tabs">
-    <button 
-      class="tabs__btn" 
-      [class.tabs__btn--active]="activeTab === 'all'" 
-      (click)="setActiveTab('all')"
-    >
-      All Resources
-    </button>
-    <button 
-      class="tabs__btn" 
-      [class.tabs__btn--active]="activeTab === 'knowledge'" 
-      (click)="setActiveTab('knowledge')"
-    >
-      Knowledge Base
-    </button>
-    <button 
-      class="tabs__btn" 
-      [class.tabs__btn--active]="activeTab === 'formulas'" 
-      (click)="setActiveTab('formulas')"
-    >
-      Formulas
-    </button>
-    <button 
-      class="tabs__btn" 
-      [class.tabs__btn--active]="activeTab === 'quotes'" 
-      (click)="setActiveTab('quotes')"
-    >
-      Quotes
-    </button>
-  </div>
+      <div class="tabs">
+        <button 
+          class="tabs__btn" 
+          [class.tabs__btn--active]="activeTab === 'all'" 
+          (click)="setActiveTab('all')"
+        >All Resources</button>
 
-  <!-- RIGHT: UPLOAD BUTTON -->
-  <div class="upload-btn-wrap">
-    <button class="upload-btn" (click)="fileInput.click()">
-      <span class="icon icon--upload"></span>
-      Upload Files
-    </button>
+        <button 
+          class="tabs__btn" 
+          [class.tabs__btn--active]="activeTab === 'knowledge'" 
+          (click)="setActiveTab('knowledge')"
+        >Knowledge Base</button>
 
-    <!-- HIDDEN FILE INPUT -->
-    <input 
-      type="file" 
-      #fileInput 
-      (change)="handleFileUpload($event)" 
-      multiple 
-      hidden 
-    />
-  </div>
+        <button 
+          class="tabs__btn" 
+          [class.tabs__btn--active]="activeTab === 'formulas'" 
+          (click)="setActiveTab('formulas')"
+        >Formulas</button>
 
-</div>
+        <button 
+          class="tabs__btn" 
+          [class.tabs__btn--active]="activeTab === 'quotes'" 
+          (click)="setActiveTab('quotes')"
+        >Quotes</button>
+      </div>
 
+      <!-- Upload button - right aligned -->
+      <div class="upload-btn-wrap">
+        <button class="upload-btn" (click)="uploadFiles()">
+          <span class="icon icon--upload"></span>
+          Upload Files
+        </button>
+      </div>
 
+    </div>
+
+    <!-- TABLE CARD -->
     <section class="card">
 
       <table class="table">
@@ -123,16 +112,19 @@
 <!-- Upload Modal -->
 <div class="upload-modal-overlay" *ngIf="showUploadModal()" (click)="closeUploadModal()">
   <div class="upload-modal" (click)="$event.stopPropagation()">
+
     <div class="upload-modal__header">
       <h2>Upload Resource</h2>
       <button class="upload-modal__close" (click)="closeUploadModal()">×</button>
     </div>
 
     <div class="upload-modal__body">
+
       @if (error()) {
         <div class="alert alert--error">{{ error() }}</div>
       }
 
+      <!-- Category -->
       <div class="form-group">
         <label for="category">Category <span class="required">*</span></label>
         <select 
@@ -148,8 +140,10 @@
         </select>
       </div>
 
+      <!-- File Upload -->
       <div class="form-group">
         <label for="file">File <span class="required">*</span></label>
+
         <div class="file-input-wrapper">
           <input 
             type="file" 
@@ -158,53 +152,61 @@
             (change)="onFileSelected($event)"
             accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.jpg,.jpeg,.png,.gif"
           />
+
           <div class="file-input-display">
             @if (selectedFile()) {
               <span class="file-name">{{ selectedFile()?.name }}</span>
-              <span class="file-size">({{ (selectedFile()?.size || 0) / 1024 / 1024 | number:'1.2-2' }} MB)</span>
+              <span class="file-size">
+                ({{ (selectedFile()?.size || 0) / 1024 / 1024 | number:'1.2-2' }} MB)
+              </span>
             } @else {
               <span class="file-placeholder">Choose a file or drag here</span>
             }
           </div>
         </div>
-        <small class="form-help">Supported formats: PDF, Word, Excel, Text, CSV, Images (Max 50MB)</small>
+
+        <small class="form-help">PDF, Word, Excel, Text, CSV, Images (Max 50MB)</small>
       </div>
 
+      <!-- Description -->
       <div class="form-group">
-        <label for="description">Description (Optional)</label>
+        <label>Description (Optional)</label>
         <textarea 
-          id="description" 
           class="form-control"
           rows="3"
-          placeholder="Enter a description for this resource..."
+          placeholder="Enter a description..."
           [value]="uploadDescription()"
           (input)="uploadDescription.set($any($event.target).value)"
         ></textarea>
       </div>
 
+      <!-- Progress Bar -->
       @if (uploadProgress() > 0 && uploadProgress() < 100) {
         <div class="progress-bar">
           <div class="progress-bar__fill" [style.width.%]="uploadProgress()"></div>
           <span class="progress-bar__text">{{ uploadProgress() }}%</span>
         </div>
       }
+
     </div>
 
     <div class="upload-modal__footer">
       <button class="btn btn--secondary" (click)="closeUploadModal()" [disabled]="loading()">
         Cancel
       </button>
+
       <button 
         class="btn btn--primary" 
         (click)="performUpload()" 
         [disabled]="!selectedFile() || loading()"
       >
         @if (loading()) {
-          <span>Uploading...</span>
+          Uploading...
         } @else {
-          <span>Upload</span>
+          Upload
         }
       </button>
     </div>
+
   </div>
 </div>

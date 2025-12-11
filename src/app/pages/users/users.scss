@@ -16,9 +16,19 @@ $desktop: 1024px;
   --color-background-light: #f9fafb;
   --color-card-bg: #ffffff;
   --color-border: #e5e7eb;
-  --font-family-base: 'Poppins', sans-serif;
+  --font-size: 16px;                 /* Base font size control */
+ 
+  --font-size-small: calc(var(--font-size) * 0.8);
+  --font-size-medium: calc(var(--font-size) * 1.1);
+  --font-size-large: calc(var(--font-size) * 1.4);
+  --font-size-xl: calc(var(--font-size) * 2);
 }
 
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-size);
+  transition: font-size 0.25s ease, font-family 0.25s ease;
+}
 /* -----------------------------------------------------
    PAGE LAYOUT - MATCHING RESOURCES
 ----------------------------------------------------- */
@@ -30,11 +40,18 @@ $desktop: 1024px;
   background: var(--color-background-light);
   font-family: var(--font-family-base);
   color: var(--color-dark);
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
+
+  /* REMOVE WIDTH LIMITATION */
+  width: 100% !important;
+  max-width: 100% !important;
+
+  /* REMOVE CENTERING */
+  margin: 0 !important;
+
+  /* OPTIONAL: Keep padding for nice spacing */
   padding: 3rem 2rem;
 }
+
 
 @media (max-width: $tablet) {
   .users-container {

@@ -1,15 +1,16 @@
-/* Sidebar collapse widths */
+/* Sidebar root */
 aside {
   transition: width 0.24s cubic-bezier(.2,.9,.2,1);
-  min-width: 72px;
-  background-color: lightgray;
+  background-color: var(--sidebar-bg) !important;
+  min-width: var(--sidebar-width-collapsed);
+  width: var(--sidebar-width);
 
   &.collapsed {
-    width: 72px !important;
+    width: var(--sidebar-width-collapsed) !important;
   }
 
   &.w-280 {
-    width: 280px !important;
+    width: var(--sidebar-width) !important;
   }
 
   /* Sidebar header styling */
@@ -28,7 +29,7 @@ aside {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: lightgray !important;
+    background-color: var(--sidebar-bg) !important;
 
     .material-icons {
       font-size: 18px;
@@ -59,7 +60,7 @@ nav button {
   justify-content: flex-start;
 }
 
-/* Center icons when sidebar is collapsed */
+/* Center icons when collapsed */
 aside.collapsed nav button {
   justify-content: center;
   padding-left: 0 !important;
@@ -107,7 +108,7 @@ aside.collapsed nav .card {
 }
 
 aside.collapsed .profile-section {
-  background: lightgray !important;
+  background: var(--sidebar-bg) !important;
   border: none !important;
 }
 
@@ -157,7 +158,7 @@ aside.collapsed .avatar-wrapper {
 }
 
 /* ------------------------------------------------------
-   ✔ FINAL MOBILE SIDEBAR FIX — CHATGPT STYLE
+    MOBILE SIDEBAR FIX
 ------------------------------------------------------ */
 @media (max-width: 640px) {
 
@@ -166,19 +167,17 @@ aside.collapsed .avatar-wrapper {
     min-width: 0 !important;
   }
 
-  /* ---------------------------------------------
-        COLLAPSED SIDEBAR (72px, NOT OVERLAY)
-     --------------------------------------------- */
+  /* COLLAPSED */
   aside.w-72,
   aside.collapsed {
     position: relative !important;    
-    width: 72px !important;
+    width: var(--sidebar-width-collapsed) !important;
     transform: translateX(0) !important;
     z-index: 1 !important;
     box-shadow: none !important;
   }
 
-  /* Chevron for collapsed state → stays attached to sidebar */
+  /* Chevron button */
   aside.w-72 .chevron-btn,
   aside.collapsed .chevron-btn {
     position: absolute !important;
@@ -186,45 +185,32 @@ aside.collapsed .avatar-wrapper {
     top: 50% !important;
     transform: translateY(-50%);
     z-index: 2001 !important;
-
-    /* match desktop UI — DO NOT override background/color */
-    background-color: lightgray !important;
-    color: inherit !important;
-    box-shadow: inherit !important;
+    background-color: var(--sidebar-bg) !important;
   }
 
-  /* ---------------------------------------------
-        EXPANDED SIDEBAR (FULL OVERLAY)
-     --------------------------------------------- */
+  /* EXPANDED OVERLAY */
   aside.w-280 {
-    position: fixed !important;       
+    position: fixed !important;
     top: 0;
     left: 0;
     height: 100vh !important;
-    width: 260px !important;
+    width: var(--sidebar-width) !important;
     transform: translateX(0) !important;
-    background-color: lightgray !important;
+    background-color: var(--sidebar-bg) !important;
     z-index: 3000 !important;
     box-shadow: 2px 0 14px rgba(0,0,0,0.25);
   }
 
-  /* Chevron for expanded state → floating like ChatGPT */
   aside.w-280 .chevron-btn {
     position: fixed !important;
-    left: 260px !important;         
+    left: calc(var(--sidebar-width) + 0px) !important;
     top: 20px !important;
     transform: translateX(-50%);
     z-index: 4000 !important;
-
-    /* match desktop button styling */
-    background-color: lightgray !important;
-    color: inherit !important;
-    box-shadow: inherit !important;
+    background-color: var(--sidebar-bg) !important;
   }
 
-  /* ---------------------------------------------
-        MAIN CONTENT MUST NEVER MOVE
-     --------------------------------------------- */
+  /* Main content stays full width */
   aside ~ main {
     margin-left: 0 !important;
     width: 100% !important;

@@ -18,7 +18,12 @@ $desktop: 1024px;
   --color-background-light: #f9fafb; /* Light Page Background */
   --color-card-bg: #ffffff; /* Card/Inner Background */
   --color-border: #e5e7eb; /* Border color */
-  --font-family-base: 'Poppins', sans-serif;
+    --font-size: 16px;                 /* Base font size control */
+ 
+  --font-size-small: calc(var(--font-size) * 0.8);
+  --font-size-medium: calc(var(--font-size) * 1.1);
+  --font-size-large: calc(var(--font-size) * 1.4);
+  --font-size-xl: calc(var(--font-size) * 2);
 
   /* Status Colors */
   --color-status-pending: #ff8c00; 
@@ -26,6 +31,11 @@ $desktop: 1024px;
   --color-status-rejected: #ef4444; 
 }
 
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-size);
+  transition: font-size 0.25s ease, font-family 0.25s ease;
+}
 /* -----------------------------------------------------
    PAGE WRAPPER & MAIN AREA (Consistent)
 ----------------------------------------------------- */
@@ -33,7 +43,7 @@ $desktop: 1024px;
   display: flex;
   min-height: 100vh;
   overflow-x: hidden;
-  font-family: var(--font-family-base);
+  font-family: var(--font-family);
   background: var(--color-background-light);
   color: var(--color-dark);
   width: 100%;
@@ -110,7 +120,7 @@ $desktop: 1024px;
     width: 100%;
     min-width: 0;
     color: var(--color-dark);
-    font-family: var(--font-family-base);
+    font-family: var(--font-family);
 
     &::placeholder {
       color: var(--color-text);
@@ -171,7 +181,7 @@ $desktop: 1024px;
   cursor: pointer;
   color: var(--color-text);
   transition: .2s;
-  font-family: var(--font-family-base);
+  font-family: var(--font-family);
 
   &:hover {
     background: #f0f0f4;

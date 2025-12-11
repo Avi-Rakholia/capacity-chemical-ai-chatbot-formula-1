@@ -1,2 +1,28 @@
 /* You can add global styles to this file, and also import other style files */
 @use "bootstrap/scss/bootstrap" as *;
+
+/* ---------------------------------------------------
+   GLOBAL CSS VARIABLES — THEME + SIDEBAR + TYPOGRAPHY
+-----------------------------------------------------*/
+:root {
+  /* FONT THEME */
+  --font-size: 16px;
+  --font-family: "Inter", sans-serif;
+    --sidebar-bg: #e3e3e3; 
+
+  /* SIDEBAR THEME VARIABLES */
+  --sidebar-bg: #e3e3e3;               /* default background */
+  --sidebar-width: 260px;              /* expanded width */
+  --sidebar-width-collapsed: 80px;     /* collapsed width */
+
+  /* Add more theme variables later if needed */
+}
+
+/* ---------------------------------------------------
+   GLOBAL BODY STYLES
+-----------------------------------------------------*/
+body {
+  font-size: var(--font-size);
+  font-family: var(--font-family);
+  transition: font-size 0.2s ease, font-family 0.2s ease;
+}

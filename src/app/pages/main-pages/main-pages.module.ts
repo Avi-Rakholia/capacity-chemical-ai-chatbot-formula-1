@@ -1,9 +1,9 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-
+ 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
+ 
 import { DashboardComponent } from '../home/home.component';
 import { SideBarComponent } from '../side-bar/side-bar.component';
 import { ChatbotComponent } from '../chatbot/chatbot.component';
@@ -11,7 +11,7 @@ import { ResourcesComponent } from '../resources/resources.component';
 import { ApprovalsComponent } from '../approvals/approvals.component';
 import { Users } from '../users/users';
 import { AnalyticsComponent } from '../analytics/analytics.component';
-
+ 
 const routes: Routes = [
   {
     path: '',
@@ -21,21 +21,23 @@ const routes: Routes = [
       { path: 'chatbot', component: ChatbotComponent },
       { path: 'resources', component: ResourcesComponent },
       { path: 'approvals', component: ApprovalsComponent },
-      { path: 'analytics', component: AnalyticsComponent},
+      { path: 'analytics', component: AnalyticsComponent },
       { path: 'users', component: Users },
-
+ 
+      // ⭐ FIXED SETTINGS ROUTE
       {
         path: 'settings',
         loadComponent: () =>
-          import('../../shared/components/placeholder.component')
-            .then(m => m.PlaceholderComponent)
+          import('../settings/settings.component')
+            .then(m => m.SettingsComponent)
       },
-
+ 
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   }
 ];
-
+ 
+ 
 @NgModule({
   imports: [
     CommonModule,      // Needed for *ngIf *ngFor
@@ -51,3 +53,5 @@ const routes: Routes = [
   ]
 })
 export class MainPagesModule { }
+ 
+ 

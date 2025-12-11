@@ -40,7 +40,19 @@ export class SideBarComponent implements OnInit {
   ngOnInit() {
     this.checkWindowSize();
 
-    // Auth listener → if no user, redirect to login
+    /* ----------------------------------------------------
+         LOAD USER DEFAULT SIDEBAR MODE (expand/collapse)
+    ------------------------------------------------------*/
+    const savedMode = localStorage.getItem('sidebarMode');
+
+    if (savedMode === 'collapse') {
+      this.open.set(false); // collapsed by default
+    } 
+    else if (savedMode === 'expand') {
+      this.open.set(true); // expanded by default
+    }
+
+    // Auth listener → redirect if logged out
     this.authService.currentUser$.subscribe((user) => {
       if (!user) this.router.navigate(['/login']);
     });
@@ -143,7 +155,6 @@ export class SideBarComponent implements OnInit {
     return user?.role === 'nsight' || user?.role === 'capacity';
   }
 
-  /* OPTIONAL: Check if normal user */
   isUser(): boolean {
     const user = this.currentUser();
     return user?.role === 'user';
@@ -164,14 +175,18 @@ export class SideBarComponent implements OnInit {
   onResize = () => this.checkWindowSize();
 
   private checkWindowSize() {
-  const w = window.innerWidth;
-  const mobile = w < 640;
+    const w = window.innerWidth;
+    const mobile = w < 640;
 
-  // If user just entered mobile mode → collapse ONCE
-  if (mobile && !this.isMobileView) {
-    this.open.set(false);  
+    /* ---------------------------------------------------------
+       When switching INTO mobile mode:
+       → collapse automatically ONCE
+       → do NOT override saved desktop preference
+    ----------------------------------------------------------*/
+    if (mobile && !this.isMobileView) {
+      this.open.set(false); // auto collapse on mobile
+    }
+
+    this.isMobileView = mobile;
   }
-
-  this.isMobileView = mobile;
-}
 }
