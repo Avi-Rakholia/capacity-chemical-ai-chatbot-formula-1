@@ -15,6 +15,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChatService, ChatMessage, ChatTemplate, ChatAttachment, StreamEvent } from '../../services/chat.service';
 import { ResourceService } from '../../services/resource.service';
+import { SupabaseAuthService } from '../../core/services/supabase-auth.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -30,6 +31,7 @@ import { Subscription } from 'rxjs';
 export class ChatbotComponent implements OnInit, OnDestroy {
   private chatService = inject(ChatService);
   private resourceService = inject(ResourceService);
+  private authService = inject(SupabaseAuthService);
   private cdr = inject(ChangeDetectorRef);
 
   // State signals
@@ -86,7 +88,13 @@ export class ChatbotComponent implements OnInit, OnDestroy {
   }
 
   createNewSession() {
-    const userId = 1; // TODO: Get from auth service
+    const userId = this.authService.getUserId();
+    
+    if (!userId) {
+      console.error('User not authenticated');
+      return;
+    }
+    
     this.chatService.createSession({ 
       session_title: 'New Chat',
       user_id: userId 
@@ -151,7 +159,23 @@ export class ChatbotComponent implements OnInit, OnDestroy {
     this.isStreaming.set(true);
 
     const aiMsgIndex = this.messages().length - 1;
-    const userId = 1; // TODO: Get from auth service
+    const userId = this.authService.getUserId();
+
+    if (!userId) {
+      console.error('User not authenticated');
+      this.messages.update(msgs => {
+        const updated = [...msgs];
+        updated[aiMsgIndex] = {
+          ...updated[aiMsgIndex],
+          response: 'Error: User not authenticated. Please log in again.',
+          isStreaming: false
+        };
+        return updated;
+      });
+      this.isStreaming.set(false);
+      this.cdr.markForCheck();
+      return;
+    }
 
     // Start streaming
     this.streamSubscription = this.chatService.streamMessage(

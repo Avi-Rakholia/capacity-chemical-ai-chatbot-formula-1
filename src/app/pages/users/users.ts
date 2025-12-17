@@ -13,20 +13,20 @@ interface Role {
 // Mock service for demonstration purposes
 class UserApiServiceMock {
   private mockRoles: Role[] = [
-    { id: 1, name: 'Admin' },
-    { id: 2, name: 'Researcher' },
-    { id: 4, name: 'Sales' },
+    { id: 1, name: 'capacity_admin' },
+    { id: 2, name: 'nsight_admin' },
+    { id: 3, name: 'user' },
   ];
 
   private mockUsers: UserWithRole[] = [
-    { user_id: 1, username: 'Harvey Spector', email: 'harvey@capacitychemicals.com', role_id: 1, role_name: 'Admin', status: 'Active', permissions: {} },
-    { user_id: 2, username: 'John Doe', email: 'john@capacitychemicals.com', role_id: 2, role_name: 'Researcher', status: 'Active', permissions: {} },
-    { user_id: 3, username: 'Harry Potter', email: 'harry@capacitychemicals.com', role_id: 2, role_name: 'Researcher', status: 'Inactive', permissions: {} },
-    { user_id: 4, username: 'Jhonny Depp', email: 'jhonny@capacitychemicals.com', role_id: 4, role_name: 'Sales', status: 'Active', permissions: {} },
-    { user_id: 5, username: 'Harry Potter', email: 'harry@capacitychemicals.com', role_id: 2, role_name: 'Researcher', status: 'Inactive', permissions: {} },
-    { user_id: 6, username: 'John Doe', email: 'john@capacitychemicals.com', role_id: 2, role_name: 'Researcher', status: 'Active', permissions: {} },
-    { user_id: 7, username: 'John Doe', email: 'john@capacitychemicals.com', role_id: 2, role_name: 'Researcher', status: 'Active', permissions: {} },
-    { user_id: 8, username: 'John Doe', email: 'john@capacitychemicals.com', role_id: 2, role_name: 'Researcher', status: 'Active', permissions: {} },
+    { user_id: 1, username: 'Harvey Spector', email: 'harvey@capacitychemicals.com', role_id: 1, role_name: 'capacity_admin', status: 'Active', permissions: {} },
+    { user_id: 2, username: 'John Doe', email: 'john@capacitychemicals.com', role_id: 2, role_name: 'nsight_admin', status: 'Active', permissions: {} },
+    { user_id: 3, username: 'Harry Potter', email: 'harry@capacitychemicals.com', role_id: 3, role_name: 'user', status: 'Inactive', permissions: {} },
+    { user_id: 4, username: 'Jhonny Depp', email: 'jhonny@capacitychemicals.com', role_id: 3, role_name: 'user', status: 'Active', permissions: {} },
+    { user_id: 5, username: 'Jane Smith', email: 'jane@capacitychemicals.com', role_id: 3, role_name: 'user', status: 'Inactive', permissions: {} },
+    { user_id: 6, username: 'Mike Ross', email: 'mike@capacitychemicals.com', role_id: 3, role_name: 'user', status: 'Active', permissions: {} },
+    { user_id: 7, username: 'Rachel Zane', email: 'rachel@capacitychemicals.com', role_id: 3, role_name: 'user', status: 'Active', permissions: {} },
+    { user_id: 8, username: 'Louis Litt', email: 'louis@capacitychemicals.com', role_id: 3, role_name: 'user', status: 'Active', permissions: {} },
   ];
 
   getAllUsers(page: number, size: number, filters: any): any {

@@ -2,6 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnInit, signal, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApprovalService, Approval } from '../../services/approval.service';
+import { ResourceService } from '../../services/resource.service';
+import { SupabaseAuthService } from '../../core/services/supabase-auth.service';
 import { HttpClientModule } from '@angular/common/http';
 
 type RequestStatus = 'Pending' | 'Approved' | 'Rejected' | 'Returned';
@@ -23,11 +25,16 @@ interface RequestRow {
 export class ApprovalsComponent implements OnInit {
   private router = inject(Router);
   private approvalService = inject(ApprovalService);
+  private resourceService = inject(ResourceService);
+  protected authService = inject(SupabaseAuthService);
 
   // Signals for reactive state
   approvals = signal<Approval[]>([]);
   loading = signal(false);
   error = signal<string | null>(null);
+  
+  // Expose isAdmin for template
+  isAdmin = this.authService.isAdmin;
   
   /* SIDEBAR COLLAPSE / EXPAND */
   sidebarCollapsed = false;
@@ -162,22 +169,40 @@ export class ApprovalsComponent implements OnInit {
     // Find the corresponding approval from the API data
     const approval = this.approvals().find(a => a.approval_id === row.id);
     if (approval) {
-      this.approvalService.updateApproval(approval.approval_id, { 
-        decision: 'Approved',
-        comments: 'Approved from UI'
-      }).subscribe({
-        next: (response) => {
-          if (response.success) {
-            row.status = 'Approved';
-            this.loadApprovals(); // Reload to get fresh data
+      // Call the correct API based on entity type
+      if (approval.entity_type === 'Resource') {
+        // For resources, use the resource approve endpoint
+        this.resourceService.approveResource(approval.entity_id).subscribe({
+          next: (response) => {
+            if (response.success) {
+              row.status = 'Approved';
+              this.loadApprovals(); // Reload to get fresh data
+              console.log('✅ Resource approved successfully');
+            }
+          },
+          error: (err) => {
+            console.error('❌ Error approving resource:', err);
+            alert('Failed to approve resource. Please try again.');
           }
-        },
-        error: (err) => {
-          console.error('Error approving:', err);
-          // Still update locally if API fails
-          row.status = 'Approved';
-        }
-      });
+        });
+      } else {
+        // For formulas and quotes, use the approval update endpoint
+        this.approvalService.updateApproval(approval.approval_id, { 
+          decision: 'Approved',
+          comments: 'Approved from UI'
+        }).subscribe({
+          next: (response) => {
+            if (response.success) {
+              row.status = 'Approved';
+              this.loadApprovals(); // Reload to get fresh data
+            }
+          },
+          error: (err) => {
+            console.error('Error approving:', err);
+            row.status = 'Approved';
+          }
+        });
+      }
     } else {
       // Fallback for dummy data
       row.status = 'Approved';
@@ -188,22 +213,40 @@ export class ApprovalsComponent implements OnInit {
     // Find the corresponding approval from the API data
     const approval = this.approvals().find(a => a.approval_id === row.id);
     if (approval) {
-      this.approvalService.updateApproval(approval.approval_id, { 
-        decision: 'Rejected',
-        comments: 'Rejected from UI'
-      }).subscribe({
-        next: (response) => {
-          if (response.success) {
-            row.status = 'Rejected';
-            this.loadApprovals(); // Reload to get fresh data
+      // Call the correct API based on entity type
+      if (approval.entity_type === 'Resource') {
+        // For resources, use the resource reject endpoint
+        this.resourceService.rejectResource(approval.entity_id).subscribe({
+          next: (response) => {
+            if (response.success) {
+              row.status = 'Rejected';
+              this.loadApprovals(); // Reload to get fresh data
+              console.log('❌ Resource rejected successfully');
+            }
+          },
+          error: (err) => {
+            console.error('❌ Error rejecting resource:', err);
+            alert('Failed to reject resource. Please try again.');
           }
-        },
-        error: (err) => {
-          console.error('Error rejecting:', err);
-          // Still update locally if API fails
-          row.status = 'Rejected';
-        }
-      });
+        });
+      } else {
+        // For formulas and quotes, use the approval update endpoint
+        this.approvalService.updateApproval(approval.approval_id, { 
+          decision: 'Rejected',
+          comments: 'Rejected from UI'
+        }).subscribe({
+          next: (response) => {
+            if (response.success) {
+              row.status = 'Rejected';
+              this.loadApprovals(); // Reload to get fresh data
+            }
+          },
+          error: (err) => {
+            console.error('Error rejecting:', err);
+            row.status = 'Rejected';
+          }
+        });
+      }
     } else {
       // Fallback for dummy data
       row.status = 'Rejected';

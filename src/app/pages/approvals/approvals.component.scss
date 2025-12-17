@@ -284,6 +284,19 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
   }
   
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #f9fafb;
+    
+    &:hover {
+      background: #f9fafb;
+      border-color: var(--color-border);
+      transform: none;
+      box-shadow: none;
+    }
+  }
+  
   /* Ensure the span used for the icon is styled correctly */
   .icon--approve,
   .icon--reject,

@@ -110,4 +110,16 @@ export class ResourceService {
       responseType: 'blob'
     });
   }
+
+  approveResource(id: number): Observable<ResourceResponse> {
+    return this.http.post<ResourceResponse>(`${this.apiUrl}/${id}/approve`, {});
+  }
+
+  rejectResource(id: number): Observable<ResourceResponse> {
+    return this.http.post<ResourceResponse>(`${this.apiUrl}/${id}/reject`, {});
+  }
+
+  getPendingResources(): Observable<ResourceResponse> {
+    return this.http.get<ResourceResponse>(`${this.apiUrl}/pending`);
+  }
 }

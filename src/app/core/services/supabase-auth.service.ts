@@ -9,6 +9,15 @@ export interface AuthUser {
   name?: string;
   role?: string;
   metadata?: any;
+  // MySQL user data
+  user_id?: number;
+  username?: string;
+  role_id?: number;
+  role_name?: string;
+  permissions?: any;
+  status?: string;
+  last_login?: string;
+  created_on?: string;
 }
 
 export interface LoginRequest {
@@ -32,6 +41,7 @@ export interface AuthResponse {
       refresh_token: string;
     };
     access_token?: string;
+    userData?: any; // Complete MySQL user data
   };
   message?: string;
   error?: string;
@@ -52,13 +62,18 @@ export class SupabaseAuthService {
   
   currentUser = signal<AuthUser | null>(null);
   isAuthenticated = computed(() => this.currentUser() !== null);
-  isAdmin = computed(() => {
-    const role = this.currentUser()?.role?.toLowerCase();
-    return role === 'admin';
+  isCapacityAdmin = computed(() => {
+    const role = this.currentUser()?.role_name?.toLowerCase() || this.currentUser()?.role?.toLowerCase();
+    return role === 'capacity_admin' || role === 'capacity admin';
   });
-  isSupervisor = computed(() => {
-    const role = this.currentUser()?.role?.toLowerCase();
-    return role === 'admin' || role === 'supervisor';
+  isNsightAdmin = computed(() => {
+    const role = this.currentUser()?.role_name?.toLowerCase() || this.currentUser()?.role?.toLowerCase();
+    return role === 'nsight_admin' || role === 'nsight admin';
+  });
+  isAdmin = computed(() => this.isCapacityAdmin() || this.isNsightAdmin());
+  isUser = computed(() => {
+    const role = this.currentUser()?.role_name?.toLowerCase() || this.currentUser()?.role?.toLowerCase();
+    return role === 'user';
   });
 
   constructor() {
@@ -145,14 +160,33 @@ export class SupabaseAuthService {
     }).pipe(
       tap(response => {
         if (response.success && response.data) {
-          this.currentUser.set({
+          const userData = response.data.userData; // MySQL user data
+          
+          const user: AuthUser = {
             id: response.data.id,
             email: response.data.email,
             name: response.data.metadata?.name,
-            role: response.data.metadata?.role,
-            metadata: response.data.metadata
-          });
-          this.currentUserSubject.next(this.currentUser());
+            role: response.data.metadata?.role || response.data.role,
+            metadata: response.data.metadata,
+            
+            // MySQL user data
+            user_id: userData?.user_id,
+            username: userData?.username,
+            role_id: userData?.role_id,
+            role_name: userData?.role_name,
+            permissions: userData?.permissions,
+            status: userData?.status,
+            last_login: userData?.last_login,
+            created_on: userData?.created_on
+          };
+          
+          this.currentUser.set(user);
+          this.currentUserSubject.next(user);
+          localStorage.setItem('user', JSON.stringify(user));
+          
+          if (userData) {
+            localStorage.setItem('user_data', JSON.stringify(userData));
+          }
         }
       })
     );
@@ -229,35 +263,79 @@ export class SupabaseAuthService {
    * Handle successful authentication
    */
   private handleAuthSuccess(data: any): void {
-    console.log('handleAuthSuccess called with data:', data);
+    console.log('✅ handleAuthSuccess called with data:', data);
     
     if (data.access_token || data.session?.access_token) {
       const accessToken = data.access_token || data.session.access_token;
       const refreshToken = data.session?.refresh_token;
 
-      console.log('Storing access token:', accessToken);
+      console.log('💾 Storing access token');
       this.setAccessToken(accessToken);
       if (refreshToken) {
-        console.log('Storing refresh token');
+        console.log('💾 Storing refresh token');
         this.setRefreshToken(refreshToken);
       }
 
-      // Set user data
+      // Set user data - prioritize MySQL userData
       if (data.user) {
+        const userData = data.userData; // MySQL user data
+        
+        console.log('📦 Received userData from backend:', userData);
+        
+        if (!userData) {
+          console.error('❌ ERROR: userData is missing from backend response!');
+          console.error('Backend response data:', data);
+        }
+        
+        if (!userData?.user_id) {
+          console.error('❌ ERROR: user_id is missing from userData!');
+          console.error('userData object:', userData);
+        }
+        
         const user: AuthUser = {
+          // Supabase user data
           id: data.user.id,
           email: data.user.email,
           name: data.user.user_metadata?.name || data.user.user_metadata?.display_name || data.user.name,
           role: data.user.user_metadata?.role || data.user.role,
-          metadata: data.user.user_metadata || data.user.metadata
+          metadata: data.user.user_metadata || data.user.metadata,
+          
+          // MySQL user data (for all operations)
+          user_id: userData?.user_id,
+          username: userData?.username,
+          role_id: userData?.role_id,
+          role_name: userData?.role_name,
+          permissions: userData?.permissions,
+          status: userData?.status,
+          last_login: userData?.last_login,
+          created_on: userData?.created_on
         };
-        console.log('Setting user data:', user);
+        
+        console.log('👤 Setting complete user data:', user);
+        console.log('🔑 MySQL user_id for operations:', user.user_id);
+        
+        if (!user.user_id) {
+          console.error('❌ CRITICAL: Final user object has no user_id!');
+        }
+        
         this.currentUser.set(user);
         this.currentUserSubject.next(user);
+        
+        // Store both Supabase and MySQL data
         localStorage.setItem('user', JSON.stringify(user));
+        
+        // Store MySQL user data separately for easy access
+        if (userData) {
+          localStorage.setItem('user_data', JSON.stringify(userData));
+          console.log('💾 Stored MySQL user data separately:', userData);
+        } else {
+          console.error('❌ ERROR: Cannot store user_data - userData is null/undefined!');
+        }
+      } else {
+        console.error('❌ ERROR: data.user is missing!');
       }
     } else {
-      console.warn('No access token found in auth response');
+      console.warn('⚠️ No access token found in auth response');
     }
   }
 
@@ -325,17 +403,85 @@ export class SupabaseAuthService {
 
   /**
    * Check if user has specific role
+   * Supports: capacity_admin, nsight_admin, user
    */
   hasRole(role: string): boolean {
-    const userRole = this.currentUser()?.role?.toLowerCase();
-    return userRole === role.toLowerCase();
+    const user = this.currentUser();
+    const userRole = (user?.role_name || user?.role)?.toLowerCase().replace(/\s+/g, '_');
+    const checkRole = role.toLowerCase().replace(/\s+/g, '_');
+    return userRole === checkRole;
   }
 
   /**
    * Check if user has any of the specified roles
+   * Supports: capacity_admin, nsight_admin, user
    */
   hasAnyRole(roles: string[]): boolean {
-    const userRole = this.currentUser()?.role?.toLowerCase();
-    return roles.some(role => role.toLowerCase() === userRole);
+    const user = this.currentUser();
+    const userRole = (user?.role_name || user?.role)?.toLowerCase().replace(/\s+/g, '_');
+    return roles.some(role => role.toLowerCase().replace(/\s+/g, '_') === userRole);
+  }
+
+  /**
+   * Get MySQL user_id for database operations
+   * This is the primary key used in all backend operations
+   */
+  getUserId(): number | undefined {
+    const user = this.currentUser();
+    console.log('🔍 getUserId() called - Current user:', user);
+    console.log('🔍 user_id value:', user?.user_id);
+    
+    if (!user) {
+      console.warn('⚠️ No current user found');
+      return undefined;
+    }
+    
+    if (!user.user_id) {
+      console.warn('⚠️ Current user has no user_id. User object:', user);
+      console.warn('⚠️ Checking localStorage...');
+      const storedUser = localStorage.getItem('user');
+      const storedUserData = localStorage.getItem('user_data');
+      console.warn('Stored user:', storedUser);
+      console.warn('Stored user_data:', storedUserData);
+    }
+    
+    return user?.user_id;
+  }
+
+  /**
+   * Get complete MySQL user data
+   */
+  getUserData(): any {
+    const userStr = localStorage.getItem('user_data');
+    if (userStr) {
+      try {
+        return JSON.parse(userStr);
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Get role_id for role-based operations
+   */
+  getRoleId(): number | undefined {
+    return this.currentUser()?.role_id;
+  }
+
+  /**
+   * Get user permissions
+   */
+  getPermissions(): any {
+    return this.currentUser()?.permissions || {};
+  }
+
+  /**
+   * Check if user has specific permission
+   */
+  hasPermission(permission: string): boolean {
+    const permissions = this.getPermissions();
+    return permissions && permissions[permission] === true;
   }
 }

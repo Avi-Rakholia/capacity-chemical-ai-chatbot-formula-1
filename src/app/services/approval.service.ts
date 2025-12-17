@@ -5,7 +5,7 @@ import { environment } from '../../environments/environment';
 
 export interface Approval {
   approval_id: number;
-  entity_type: 'Formula' | 'Quote';
+  entity_type: 'Formula' | 'Quote' | 'Resource';
   entity_id: number;
   approver_id: number;
   decision: 'Pending' | 'Approved' | 'Rejected' | 'Returned';
@@ -14,10 +14,12 @@ export interface Approval {
   approver_name?: string;
   entity_name?: string;
   request_date?: string;
+  resource_category?: string;
+  requester_name?: string;
 }
 
 export interface CreateApprovalRequest {
-  entity_type: 'Formula' | 'Quote';
+  entity_type: 'Formula' | 'Quote' | 'Resource';
   entity_id: number;
   approver_id: number;
   decision?: 'Pending' | 'Approved' | 'Rejected' | 'Returned';
@@ -45,7 +47,7 @@ export class ApprovalService {
   private apiUrl = `${environment.apiUrl}/api/approvals`;
 
   getAllApprovals(filters?: {
-    entity_type?: 'Formula' | 'Quote';
+    entity_type?: 'Formula' | 'Quote' | 'Resource';
     decision?: 'Pending' | 'Approved' | 'Rejected' | 'Returned';
     approver_id?: number;
   }): Observable<ApprovalResponse> {

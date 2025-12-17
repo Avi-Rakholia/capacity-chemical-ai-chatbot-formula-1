@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ResourceService, Resource } from '../../services/resource.service';
 import { HttpClientModule } from '@angular/common/http';
+import { SupabaseAuthService } from '../../core/services/supabase-auth.service';
 
 interface ResourceItem {
   id: number;
@@ -21,6 +22,7 @@ interface ResourceItem {
 })
 export class ResourcesComponent implements OnInit {
   private resourceService = inject(ResourceService);
+  private authService = inject(SupabaseAuthService);
 
   // Signals for reactive state
   resources = signal<Resource[]>([]);
@@ -263,8 +265,14 @@ export class ResourcesComponent implements OnInit {
     this.error.set(null);
     this.uploadProgress.set(0);
 
-    // TODO: Get actual user ID from auth service
-    const uploadedBy = 1; // Placeholder - should come from authenticated user
+    // Get user_id from authenticated user
+    const uploadedBy = this.authService.getUserId();
+    
+    if (!uploadedBy) {
+      this.error.set('User not authenticated. Please log in again.');
+      this.loading.set(false);
+      return;
+    }
 
     this.resourceService.uploadResource(
       file,

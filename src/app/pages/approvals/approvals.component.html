@@ -67,10 +67,18 @@
 
             <td class="table__actions">
               <ng-container *ngIf="row.status === 'Pending'">
-                <button class="icon-btn" (click)="approve(row)" title="Approve">
+                <button 
+                  class="icon-btn" 
+                  (click)="approve(row)" 
+                  [disabled]="!isAdmin()"
+                  [title]="isAdmin() ? 'Approve' : 'Only admins can approve'">
                   <span class="icon icon--approve"></span>
                 </button>
-                <button class="icon-btn" (click)="reject(row)" title="Reject">
+                <button 
+                  class="icon-btn" 
+                  (click)="reject(row)" 
+                  [disabled]="!isAdmin()"
+                  [title]="isAdmin() ? 'Reject' : 'Only admins can reject'">
                   <span class="icon icon--reject"></span>
                 </button>
               </ng-container>
