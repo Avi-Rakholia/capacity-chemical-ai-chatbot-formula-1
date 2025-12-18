@@ -1,15 +1,464 @@
-.approvals-container {
-  padding: 20px;
-  
-  h1 {
-    margin: 0 0 10px 0;
-    font-size: 28px;
-    font-weight: 600;
-  }
-  
-  p {
-    margin: 0;
-    color: #666;
-    font-size: 14px;
+/* 1. GLOBAL SCSS VARIABLES (For Compiler) */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+$shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.06);
+
+/* Breakpoints */
+$mobile: 640px;
+$tablet: 768px;
+$desktop: 1024px;
+
+
+/* 2. CSS VARIABLE PALETTE (For Browser) */
+:host {
+  /* Define Color Palette (Matching Chatbot/Resources Pages) */
+  --color-primary: #007bff; /* Blue */
+  --color-dark: #1f2937; /* Dark text */
+  --color-text: #4b5563; /* Muted text */
+  --color-background-light: #f9fafb; /* Light Page Background */
+  --color-card-bg: #ffffff; /* Card/Inner Background */
+  --color-border: #e5e7eb; /* Border color */
+    --font-size: 16px;                 /* Base font size control */
+ 
+  --font-size-small: calc(var(--font-size) * 0.8);
+  --font-size-medium: calc(var(--font-size) * 1.1);
+  --font-size-large: calc(var(--font-size) * 1.4);
+  --font-size-xl: calc(var(--font-size) * 2);
+
+  /* Status Colors */
+  --color-status-pending: #ff8c00; 
+  --color-status-approved: #10b981; 
+  --color-status-rejected: #ef4444; 
+}
+
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-size);
+  transition: font-size 0.25s ease, font-family 0.25s ease;
+}
+/* -----------------------------------------------------
+   PAGE WRAPPER & MAIN AREA (Consistent)
+----------------------------------------------------- */
+.page {
+  display: flex;
+  min-height: 100vh;
+  overflow-x: hidden;
+  font-family: var(--font-family);
+  background: var(--color-background-light);
+  color: var(--color-dark);
+  width: 100%;
+}
+
+.main {
+  flex: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 3rem 2rem;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+@media (max-width: $tablet) {
+  .main {
+    padding: 1.5rem 1rem;
   }
 }
+
+/* -----------------------------------------------------
+   HEADER (CENTERED SEARCH/SORT CONTROLS)
+----------------------------------------------------- */
+.main__header {
+  display: flex;
+  /* Centers the search and sort buttons */
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem; 
+  margin-bottom: 1.5rem; 
+  margin-top: 1rem;
+  width: 100%;
+}
+
+/* -----------------------------------------------------
+   SEARCH BAR + SORT BUTTON (Width controlled for centering)
+----------------------------------------------------- */
+.main__search {
+  display: flex;
+  align-items: center;
+  padding: 0.6rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-card-bg);
+  
+  /* FIX: Max-width for consistent sizing across pages when centered */
+  flex-grow: 1;
+  max-width: 600px; 
+  
+  transition: all 0.2s ease;
+
+  &:focus-within {
+      border-color: var(--color-dark);
+      box-shadow: 0 0 0 1px var(--color-dark);
+  }
+
+  .icon--search {
+    width: 1.25rem;
+    height: 1.25rem;
+    display: inline-block;
+    background-image: url('/assets/find.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    filter: invert(30%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(50%) contrast(90%);
+  }
+
+  input {
+    border: none;
+    outline: none;
+    font-size: 0.9rem;
+    margin-left: 0.5rem;
+    width: 100%;
+    min-width: 0;
+    color: var(--color-dark);
+    font-family: var(--font-family);
+
+    &::placeholder {
+      color: var(--color-text);
+      font-weight: 300;
+    }
+  }
+}
+
+.main__sort {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-card-bg);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* -----------------------------------------------------
+   ICON FALLBACKS (Ensure base icon styling for non-action icons)
+----------------------------------------------------- */
+.icon::before {
+  content: "";
+  display: inline-block;
+  width: 1.1rem;
+  height: 1.1rem;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  filter: invert(30%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(50%) contrast(90%);
+}
+.main__sort .icon--sort::before { filter: none; } 
+.icon--sort::before         { background-image: url('/assets/sorting.svg'); }
+
+ 
+/* -----------------------------------------------------
+   TABS (Centered)
+----------------------------------------------------- */
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem; 
+  margin: 1.5rem 0 1.5rem;
+  justify-content: center;
+}
+
+.tabs__btn {
+  padding: 0.6rem 1.25rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  background: var(--color-card-bg);
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  color: var(--color-text);
+  transition: .2s;
+  font-family: var(--font-family);
+
+  &:hover {
+    background: #f0f0f4;
+    border-color: #d1d5db;
+  }
+
+  &--active {
+    background: var(--color-primary);
+    color: white;
+    font-weight: 600;
+    border-color: transparent;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+  }
+}
+
+/* -----------------------------------------------------
+   TABLE AND BADGES (Consistent)
+----------------------------------------------------- */
+.card {
+  background: var(--color-card-bg);
+  padding: 1.5rem 1.75rem;
+  border-radius: 1rem;
+  box-shadow: $shadow-soft;
+  border: 1px solid #f0f0f0;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  min-width: 48rem; 
+
+  th {
+    padding: 1rem 1rem;
+    text-align: left;
+    color: var(--color-text);
+    font-weight: 600;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    border-bottom: 2px solid #f3f4f6;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+  }
+
+  td {
+    padding: 1rem 1rem;
+    border-bottom: 1px solid #f3f4f6;
+    font-weight: 400;
+    color: var(--color-dark);
+  }
+
+  /* --- PROFESSIONAL ALIGNMENT FIXES (Table Headings) --- */
+  th:nth-child(2), td:nth-child(2) { text-align: center; } 
+  th:nth-child(3), td:nth-child(3) { text-align: center; } 
+}
+
+/* Action column alignment (Right) */
+.table__actions-header,
+.table__actions {
+  width: 120px;
+  text-align: right;
+  padding-right: 0.5rem; 
+}
+
+.badge {
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-flex;
+  justify-content: center;
+  min-width: 84px;
+}
+
+.badge--pending { background: #ffecb3; color: var(--color-status-pending); }
+.badge--approved { background: #d4f8e6; color: var(--color-status-approved); }
+.badge--rejected { background: #fee2e2; color: var(--color-status-rejected); }
+
+/* -----------------------------------------------------
+   ACTION BUTTONS (DEFINITIVE FIX FOR VISIBILITY)
+----------------------------------------------------- */
+.icon-btn {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.5rem;
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin: 0 0.2rem;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #f9fafb;
+    
+    &:hover {
+      background: #f9fafb;
+      border-color: var(--color-border);
+      transform: none;
+      box-shadow: none;
+    }
+  }
+  
+  /* Ensure the span used for the icon is styled correctly */
+  .icon--approve,
+  .icon--reject,
+  .icon--share {
+    /* Style the span element itself */
+    display: block; 
+    width: 1.1rem;
+    height: 1.1rem;
+    
+    /* Load image directly onto the span */
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    
+    /* Clear any inherited filters */
+    filter: none; 
+  }
+
+  /* Override the default .icon::before pseudo-element if it's interfering */
+  .icon--approve::before, 
+  .icon--reject::before,
+  .icon--share::before {
+      content: none !important;
+  }
+  
+  /* Load images using the span class */
+  .icon--approve { background-image: url('/assets/check.svg'); }
+  .icon--reject { background-image: url('/assets/shape.svg'); }
+  .icon--share  { background-image: url('/assets/share.svg'); }
+}
+
+/* -----------------------------------------------------
+   TOOLTIP & RESPONSIVE (Consistent)
+----------------------------------------------------- */
+.tooltip {
+  position: absolute;
+  left: 0;
+  margin-top: 0.5rem;
+  background: var(--color-dark); 
+  color: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+}
+
+.table td.table__actions {
+    position: relative;
+}
+
+@media (max-width: $mobile) {
+  .main__search {
+    max-width: none;
+    flex: 1;
+  }
+  .main__header {
+    flex-wrap: wrap;
+  }
+  .card {
+    overflow-x: auto !important;
+  }
+  .table {
+    min-width: 750px !important;
+  }
+}
+
+/* -----------------------------------------------------
+   MOBILE OPTIMIZATIONS (FOR BETTER USABILITY)
+----------------------------------------------------- */
+@media (max-width: 640px) {
+
+  /* MAIN AREA */
+  .main {
+    padding: 0.8rem !important;
+  }
+
+  /* SEARCH BAR */
+  .main__search {
+    padding: 0.45rem 0.7rem !important;
+  }
+
+  .main__search input {
+    font-size: 0.8rem !important;
+  }
+
+  .main__sort {
+    width: 1.9rem !important;
+    height: 1.9rem !important;
+  }
+
+  /* TABS */
+  .tabs {
+    gap: 0.4rem !important;
+    margin: 0.8rem 0 !important;
+  }
+
+  .tabs__btn {
+    padding: 0.45rem 0.9rem !important;
+    font-size: 0.75rem !important;
+  }
+
+  /* UPLOAD BUTTON */
+  .upload-btn {
+    padding: 0.55rem 1.2rem !important;
+    font-size: 0.8rem !important;
+  }
+
+  /* CARD WRAPPER */
+  .card {
+    padding: 0.8rem !important;
+    border-radius: 0.7rem !important;
+  }
+
+  /* TABLE — narrower so STATUS fits */
+  .table {
+    min-width: 520px !important;   /* 🔥 Reduces horizontal scroll */
+    font-size: 0.75rem !important;
+  }
+
+  .table th,
+  .table td {
+    padding: 0.55rem 0.4rem !important;
+  }
+
+  /* STATUS BADGES */
+  .badge {
+    font-size: 0.65rem !important;
+    padding: 0.25rem 0.5rem !important;
+    min-width: 60px !important;
+  }
+
+  /* ACTION BUTTONS — just right */
+  .icon-btn {
+    width: 1.8rem !important;
+    height: 1.8rem !important;
+    margin-left: 0.25rem !important;
+  }
+
+  .table__actions {
+    white-space: nowrap !important;
+  }
+   /* Increase actions column width */
+  .table th:last-child,
+  .table td:last-child {
+    width: 90px !important;        /* Pushes icons further right */
+    text-align: right !important;
+  }
+
+  /* Make icons align towards the right edge */
+  .table td.table__actions,
+  .actions-cell {
+    padding-right: 0.8rem !important;
+  }
+
+  /* Slight icon spacing fix */
+  .icon-btn {
+    margin-left: 0.3rem !important;
+  }
+
+  
+}
+
+

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators, FormGroup } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { CreateAccountPath } from '../../shared/path-enums/create-account-path';
-import { SupabaseService } from '../../core/services/supabase.service';
+import { SupabaseAuthService } from '../../core/services/supabase-auth.service';
 
 @Component({
   selector: 'app-login',  
@@ -14,7 +14,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
 export class LoginComponent {
   private fb = inject(FormBuilder);
   private router = inject(Router);
-  private supabaseService = inject(SupabaseService);
+  private authService = inject(SupabaseAuthService);
 
   loginForm: FormGroup;
   passwordVisible = signal(false);
@@ -25,7 +25,7 @@ export class LoginComponent {
     this.loginForm = this.fb.group({
       role: ['capacity', Validators.required],
       email: ['', [Validators.required, Validators.email]],
-      username: ['', Validators.required],
+      // username: ['', Validators.required],
       password: ['', [Validators.required, Validators.minLength(8)]],
     });
   }
@@ -43,21 +43,14 @@ export class LoginComponent {
       const formValue = this.loginForm.value;
       
       // Sign in with Supabase
-      const { user, error } = await this.supabaseService.signIn({
-        email: formValue.email,
-        password: formValue.password,
-        role: formValue.role
-      });
+      const result = await this.authService.signIn(
+        formValue.email,
+        formValue.password
+      );
 
-      if (error) {
-        this.errorMessage.set(error.message);
-      } else if (user) {
-        // Update user metadata with role if needed
-        await this.supabaseService.updateUserMetadata({
-          role: formValue.role,
-          username: formValue.username
-        });
-
+      if (result.error) {
+        this.errorMessage.set(result.error.message);
+      } else if (result.user) {
         // Redirect to dashboard or appropriate page
         this.router.navigate(['/home/dashboard']);
       }
@@ -74,10 +67,10 @@ export class LoginComponent {
     this.errorMessage.set(null);
 
     try {
-      const { error } = await this.supabaseService.signInWithOAuth('azure');
+      const result = await this.authService.signInWithOAuth('azure');
       
-      if (error) {
-        this.errorMessage.set(error.message);
+      if (result.error) {
+        this.errorMessage.set(result.error.message);
         this.isLoading.set(false);
       }
       // If successful, the OAuth flow will handle the redirect

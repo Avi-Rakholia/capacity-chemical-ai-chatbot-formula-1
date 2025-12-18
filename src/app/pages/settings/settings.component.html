@@ -1,0 +1,77 @@
+<div class="settings-card">
+
+  <h1>Settings</h1>
+  <p class="subtitle">Customize your preferences</p>
+
+  <!-- FONT FAMILY -->
+  <div class="setting-block">
+    <label><span class="icon"></span>Font Family</label>
+    <div class="select-wrapper">
+      <select [(ngModel)]="selectedFamily" (ngModelChange)="updateFamily()">
+        <option *ngFor="let fam of fontFamilies" [value]="fam">
+          {{ fam }}
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <!-- SIDEBAR COLLAPSE / EXPAND -->
+  <div class="setting-block">
+    <label><span class="icon"></span>Sidebar Mode</label>
+
+    <div class="drawer-options">
+      <div 
+        class="drawer-option"
+        [class.selected]="selectedDrawer === 'collapse'"
+        (click)="selectDrawer('collapse', $event)"
+      >
+        ⬅️ Collapse
+      </div>
+
+      <div 
+        class="drawer-option"
+        [class.selected]="selectedDrawer === 'expand'"
+        (click)="selectDrawer('expand', $event)"
+      >
+        ➡️ Expand
+      </div>
+    </div>
+  </div>
+
+  <!-- SIDEBAR COLOUR -->
+  <div class="setting-block">
+    <label><span class="icon"></span>Sidebar Colour</label>
+
+    <div class="color-select-wrapper">
+      <div class="color-preview" [style.background]="sidebarColor"></div>
+
+      <div class="select-wrapper" style="flex: 1;">
+        <select
+          [ngModel]="sidebarColor"
+          (ngModelChange)="updateColorPreview($event)"
+        >
+
+          <!-- TRUE DEFAULT (ALWAYS ORIGINAL COLOR) -->
+          <option value="default">Default</option>
+
+          <!-- Light Soft Theme Colors -->
+          <option value="#c7ccd3">Soft Slate Gray</option>
+          <option value="#b8c4ce">Cool Mist Blue-Gray</option>
+          <option value="#c2d0dd">Calm Steel Blue</option>
+          <option value="#c8d8d6">Aqua Mist Teal</option>
+          <option value="#d6cfc4">Warm Sandstone</option>
+          <option value="#ccb8d9">Lavender Smoke</option>
+          <option value="#d9c2c2">Blush Clay</option>
+          <option value="#d1d1e0">Lilac Gray</option>
+          <option value="#cfd6e3">Faded Navy Blue</option>
+
+          <option value="#cfd8dc">Soft Slate (Blue Gray)</option>
+          <option value="#c7d3dd">Steel Mist (Light Dusty Blue)</option>
+          <option value="#d5ccc5">Muted Stone (Calm Brownish Gray)</option>
+
+        </select>
+      </div>
+    </div>
+  </div>
+
+</div>

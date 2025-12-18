@@ -1,0 +1,108 @@
+<div class="page">
+  
+  <main class="main">
+
+    <header class="main__header">
+      
+      <div class="main__search">
+        <span class="icon icon--search"></span>
+        <input
+          type="text"
+          placeholder="Search Text"
+          (input)="onSearch($event.target.value)"
+        />
+      </div>
+
+      <button class="main__sort"
+              (click)="toggleSort()"
+              [title]="sortAsc ? 'Sort Z–A' : 'Sort A–Z'">
+        <span class="icon icon--sort"></span>
+      </button>
+      
+    </header>
+
+    <div class="tabs">
+      <button class="tabs__btn"
+              [class.tabs__btn--active]="activeTab === 'all'"
+              (click)="setTab('all')">
+        All Requests
+      </button>
+
+      <button class="tabs__btn"
+              [class.tabs__btn--active]="activeTab === 'formulas'"
+              (click)="setTab('formulas')">
+        Formulas
+      </button>
+
+      <button class="tabs__btn"
+              [class.tabs__btn--active]="activeTab === 'quotes'"
+              (click)="setTab('quotes')">
+        Quotes
+      </button>
+    </div>
+
+    <section class="card">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Formula</th>
+            <th>Date Requested</th>
+            <th>Date Responded</th>
+            <th>Request Status</th>
+            <th class="table__actions-header">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let row of filteredRows">
+            <td>{{ row.formula }}</td>
+            <td>{{ row.dateRequested }}</td>
+            <td>{{ row.dateResponded }}</td>
+
+            <td>
+              <span class="badge" [ngClass]="getStatusClass(row.status)">
+                {{ row.status }}
+              </span>
+            </td>
+
+            <td class="table__actions">
+              <ng-container *ngIf="row.status === 'Pending'">
+                <button 
+                  class="icon-btn" 
+                  (click)="approve(row)" 
+                  [disabled]="!isAdmin()"
+                  [title]="isAdmin() ? 'Approve' : 'Only admins can approve'">
+                  <span class="icon icon--approve"></span>
+                </button>
+                <button 
+                  class="icon-btn" 
+                  (click)="reject(row)" 
+                  [disabled]="!isAdmin()"
+                  [title]="isAdmin() ? 'Reject' : 'Only admins can reject'">
+                  <span class="icon icon--reject"></span>
+                </button>
+              </ng-container>
+
+              <ng-container *ngIf="row.status !== 'Pending'">
+                <button class="icon-btn" (click)="share(row)" title="Share">
+                  <span class="icon icon--share"></span>
+                </button>
+
+                <div class="tooltip" *ngIf="row.status === 'Rejected'">
+                  Safety details not present.
+                </div>
+              </ng-container>
+            </td>
+          </tr>
+
+          <tr *ngIf="filteredRows.length === 0">
+            <td colspan="5" class="table__empty">
+              No records match your filters.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+  </main>
+</div>

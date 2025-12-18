@@ -1,0 +1,170 @@
+<div class="chatbot-container">
+  
+  <!-- Three dots menu -->
+  <div class="actions-menu">
+    <button class="menu-btn" (click)="toggleMenu()">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <circle cx="9" cy="3" r="1.5" fill="#333"/>
+        <circle cx="9" cy="9" r="1.5" fill="#333"/>
+        <circle cx="9" cy="15" r="1.5" fill="#333"/>
+      </svg>
+    </button>
+
+    <div class="dropdown" *ngIf="menuOpen()">
+      <div class="dropdown-item">
+        <span class="item-icon">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M2 8h12M8 2v12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </span>
+        New Chat
+      </div>
+
+      <div class="dropdown-item">
+        <span class="item-icon">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.5" fill="none"/>
+            <path d="M11 11l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </span>
+        Search
+      </div>
+
+      <div class="dropdown-item">
+        <span class="item-icon">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5" fill="none"/>
+            <path d="M8 4v4l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </span>
+        History
+      </div>
+    </div>
+  </div>
+
+  
+  <!-- MAIN WRAPPER -->
+  <div class="wrapper">
+
+    <!-- Logo -->
+    <div class="logo"></div>
+
+    <!-- Heading -->
+    <h1 class="header-text">How can we assist you today?</h1>
+
+    <p class="subtext">
+      Start by searching a new formula, and let the bot do the tedious work.<br>
+      Not sure where to start?
+    </p>
+
+    <!-- Card Row - Show only when templates are visible -->
+    <div class="card-row" *ngIf="showTemplates()">
+
+      <div class="card" (click)="onSearchFormula()">
+        <div class="card-content">
+          <div class="card-header">Search<br />Formula</div>
+          <div class="arrow-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="#333" stroke-width="1.5"/>
+              <path d="M10 8l4 4-4 4" stroke="#333" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+        <p class="card-sub-text">Search formula from our formula database...</p>
+      </div>
+
+      <div class="card" (click)="onCreateFormula()">
+        <div class="card-content">
+          <div class="card-header">Create<br />Formula</div>
+          <div class="arrow-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="#333" stroke-width="1.5"/>
+              <path d="M10 8l4 4-4 4" stroke="#333" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+        <p class="card-sub-text">Search formula from our formula database...</p>
+      </div>
+
+      <div class="card" (click)="onGenerateQuote()">
+        <div class="card-content">
+          <div class="card-header">Generate<br />Quote</div>
+          <div class="arrow-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="#333" stroke-width="1.5"/>
+              <path d="M10 8l4 4-4 4" stroke="#333" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+        <p class="card-sub-text">Search formula from our formula database...</p>
+      </div>
+
+    </div>
+
+
+    <!-- Chat Window - Show after first message -->
+    <div class="chat-window" *ngIf="!showTemplates() && messages().length > 0">
+      <div *ngFor="let msg of messages()" [class]="msg.isUser ? 'chat-bubble user' : 'chat-bubble ai'">
+        
+        <!-- User message -->
+        <div *ngIf="msg.isUser" class="message-content">
+          <div class="message-text">{{ msg.prompt }}</div>
+          
+          <!-- Show attachments if any -->
+          <div *ngIf="msg.attachments && msg.attachments.length > 0" class="attachments">
+            <div *ngFor="let att of msg.attachments" class="attachment-item">
+              <span class="attachment-icon">📎</span>
+              <span class="attachment-name">{{ att.file_name }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI message -->
+        <div *ngIf="!msg.isUser" class="message-content">
+          <div class="message-text">
+            {{ msg.response || '' }}
+            <span *ngIf="msg.isStreaming" class="streaming-cursor">▊</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Input Area -->
+    <div class="input-bar">
+
+      <input 
+        type="text" 
+        placeholder="Type your query here..." 
+        [value]="userMessage()"
+        (input)="userMessage.set($any($event.target).value)"
+        (keyup.enter)="sendMessage()"
+        [disabled]="isStreaming()"
+      />
+
+      <!-- Attach Document Button -->
+      <button class="attach-btn" (click)="triggerFileInput()" [disabled]="isStreaming()">
+        <img src="/assets/attach-document.svg" class="attach-icon" alt="Attach" />
+      </button>
+
+      <!-- Hidden File Input -->
+      <input 
+        type="file" 
+        #fileInput
+        (change)="onFileSelected($event)"
+        accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
+        style="display:none"
+      />
+
+      <!-- Send Button -->
+      <button class="send-btn" (click)="sendMessage()" [disabled]="isStreaming() || !userMessage().trim()">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M2 10l16-8-8 16-2-8-6-0z" fill="currentColor"/>
+        </svg>
+      </button>
+
+    </div>
+
+  </div>
+
+</div>

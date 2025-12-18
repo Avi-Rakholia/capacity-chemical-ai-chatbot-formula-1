@@ -1,0 +1,212 @@
+<div class="page">
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- SEARCH BAR CENTERED -->
+    <header class="main__header">
+
+      <div class="main__search-center">
+        <div class="main__search">
+          <span class="icon icon--search"></span>
+          <input
+            type="text"
+            placeholder="Search Text"
+            [value]="searchText"
+            (input)="onSearch($any($event.target).value)"
+          />
+        </div>
+
+        <button class="main__sort" (click)="toggleSort()">
+          <span class="icon icon--sort"></span>
+        </button>
+      </div>
+
+    </header>
+
+    <!-- TABS + UPLOAD BUTTON SAME ROW -->
+    <div class="tabs-upload-row">
+
+      <div class="tabs">
+        <button 
+          class="tabs__btn" 
+          [class.tabs__btn--active]="activeTab === 'all'" 
+          (click)="setActiveTab('all')"
+        >All Resources</button>
+
+        <button 
+          class="tabs__btn" 
+          [class.tabs__btn--active]="activeTab === 'knowledge'" 
+          (click)="setActiveTab('knowledge')"
+        >Knowledge Base</button>
+
+        <button 
+          class="tabs__btn" 
+          [class.tabs__btn--active]="activeTab === 'formulas'" 
+          (click)="setActiveTab('formulas')"
+        >Formulas</button>
+
+        <button 
+          class="tabs__btn" 
+          [class.tabs__btn--active]="activeTab === 'quotes'" 
+          (click)="setActiveTab('quotes')"
+        >Quotes</button>
+      </div>
+
+      <!-- Upload button - right aligned -->
+      <div class="upload-btn-wrap">
+        <button class="upload-btn" (click)="uploadFiles()">
+          <span class="icon icon--upload"></span>
+          Upload Files
+        </button>
+      </div>
+
+    </div>
+
+    <!-- TABLE CARD -->
+    <section class="card">
+
+      <table class="table">
+
+        <thead>
+          <tr>
+            <th>File</th>
+            <th>Date</th>
+            <th>File Type</th>
+            <th>File Size</th>
+            <th class="actions-header">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let r of displayedResources">
+            <td>{{ r.file }}</td>
+            <td>{{ r.date }}</td>
+            <td>{{ r.fileType }}</td>
+            <td>{{ r.size }}</td>
+
+            <td class="actions-cell">
+              <button class="icon-btn" (click)="downloadFile(r)">
+                <span class="icon icon--download"></span>
+              </button>
+
+              <button class="icon-btn" (click)="shareFile(r)">
+                <span class="icon icon--share"></span>
+              </button>
+            </td>
+          </tr>
+
+          <tr *ngIf="displayedResources.length === 0">
+            <td colspan="5" class="table__empty">No records match your filters.</td>
+          </tr>
+
+        </tbody>
+      </table>
+
+    </section>
+
+  </main>
+
+</div>
+
+<!-- Upload Modal -->
+<div class="upload-modal-overlay" *ngIf="showUploadModal()" (click)="closeUploadModal()">
+  <div class="upload-modal" (click)="$event.stopPropagation()">
+
+    <div class="upload-modal__header">
+      <h2>Upload Resource</h2>
+      <button class="upload-modal__close" (click)="closeUploadModal()">×</button>
+    </div>
+
+    <div class="upload-modal__body">
+
+      @if (error()) {
+        <div class="alert alert--error">{{ error() }}</div>
+      }
+
+      <!-- Category -->
+      <div class="form-group">
+        <label for="category">Category <span class="required">*</span></label>
+        <select 
+          id="category" 
+          class="form-control"
+          [value]="uploadCategory()"
+          (change)="uploadCategory.set($any($event.target).value)"
+        >
+          <option value="formulas">Formulas</option>
+          <option value="quotes">Quotes</option>
+          <option value="knowledge">Knowledge Base</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <!-- File Upload -->
+      <div class="form-group">
+        <label for="file">File <span class="required">*</span></label>
+
+        <div class="file-input-wrapper">
+          <input 
+            type="file" 
+            id="file"
+            class="file-input"
+            (change)="onFileSelected($event)"
+            accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.jpg,.jpeg,.png,.gif"
+          />
+
+          <div class="file-input-display">
+            @if (selectedFile()) {
+              <span class="file-name">{{ selectedFile()?.name }}</span>
+              <span class="file-size">
+                ({{ (selectedFile()?.size || 0) / 1024 / 1024 | number:'1.2-2' }} MB)
+              </span>
+            } @else {
+              <span class="file-placeholder">Choose a file or drag here</span>
+            }
+          </div>
+        </div>
+
+        <small class="form-help">PDF, Word, Excel, Text, CSV, Images (Max 50MB)</small>
+      </div>
+
+      <!-- Description -->
+      <div class="form-group">
+        <label>Description (Optional)</label>
+        <textarea 
+          class="form-control"
+          rows="3"
+          placeholder="Enter a description..."
+          [value]="uploadDescription()"
+          (input)="uploadDescription.set($any($event.target).value)"
+        ></textarea>
+      </div>
+
+      <!-- Progress Bar -->
+      @if (uploadProgress() > 0 && uploadProgress() < 100) {
+        <div class="progress-bar">
+          <div class="progress-bar__fill" [style.width.%]="uploadProgress()"></div>
+          <span class="progress-bar__text">{{ uploadProgress() }}%</span>
+        </div>
+      }
+
+    </div>
+
+    <div class="upload-modal__footer">
+      <button class="btn btn--secondary" (click)="closeUploadModal()" [disabled]="loading()">
+        Cancel
+      </button>
+
+      <button 
+        class="btn btn--primary" 
+        (click)="performUpload()" 
+        [disabled]="!selectedFile() || loading()"
+      >
+        @if (loading()) {
+          Uploading...
+        } @else {
+          Upload
+        }
+      </button>
+    </div>
+
+  </div>
+</div>

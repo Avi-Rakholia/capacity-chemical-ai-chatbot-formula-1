@@ -109,7 +109,7 @@
         <button
           class="btn d-flex align-items-center w-100 gap-2 rounded-2"
           [class.active]="activeRoute() === 'users'"
-          (click)="navigateTo('/admin/users')"
+          (click)="navigateTo('/home/users')"
           [title]="!isOpen() ? 'User Management' : null"
           role="menuitem"
         >
@@ -124,7 +124,7 @@
         <button
           class="btn d-flex align-items-center w-100 gap-2 rounded-2"
           [class.active]="activeRoute() === 'analytics'"
-          (click)="navigateTo('/admin/analytics')"
+          (click)="navigateTo('/home/analytics')"
           [title]="!isOpen() ? 'Analytics' : null"
           role="menuitem"
         >
@@ -157,7 +157,7 @@
     <div class="card m-3 mb-4 border-top position-relative profile-section">
       <div class="d-flex align-items-center gap-2 p-2 bg-white rounded-2 shadow-sm profile-container" (click)="toggleProfileMenu()">
         <div class="flex-shrink-0 rounded-circle overflow-hidden avatar-wrapper" style="width:44px; height:44px;">
-          <img [src]="getUserAvatar()" [alt]="currentUser()!.email" class="img-fluid w-100 h-100" />
+          <img [src]="getUserAvatar()" [alt]="currentUser()?.email || 'User'" class="img-fluid w-100 h-100" />
         </div>
         @if (isOpen()) {
         <div class="flex-grow-1 text-truncate">

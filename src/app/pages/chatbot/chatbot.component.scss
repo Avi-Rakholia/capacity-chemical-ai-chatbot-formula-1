@@ -1,15 +1,437 @@
+/* 1. GLOBAL STYLES & FONT */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+:host {
+  /* Define Color Palette */
+  --color-primary: #007bff;
+  --color-dark: #1f2937;
+  --color-text: #4b5563;
+  --color-background-light: #f9fafb;
+  --color-border: #e5e7eb;
+  --color-card-bg: #ffffff;
+  --font-family-base: 'Poppins', sans-serif;
+  --font-size: 16px;                 /* Base font size control */
+  --font-size-small: calc(var(--font-size) * 0.8);
+  --font-size-medium: calc(var(--font-size) * 1.1);
+  --font-size-large: calc(var(--font-size) * 1.4);
+  --font-size-xl: calc(var(--font-size) * 2);
+}
+
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-size);
+  transition: font-size 0.25s ease, font-family 0.25s ease;
+}
+
 .chatbot-container {
-  padding: 20px;
-  
-  h1 {
-    margin: 0 0 10px 0;
-    font-size: 28px;
-    font-weight: 600;
+  position: relative;
+  min-height: 100vh;
+  background: var(--color-background-light);
+  padding: 0;
+  font-family: var(--font-family);
+  color: var(--color-dark);
+}
+
+/* ===========================
+     ACTIONS MENU (Top Right)
+=========================== */
+.actions-menu {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 100;
+
+  .menu-btn {
+    background: var(--color-card-bg);
+    border: 1px solid var(--color-border);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    svg circle {
+      fill: var(--color-dark);
+    }
+
+    &:hover {
+      background: #f0f0f4;
+      border-color: #d1d5db;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
   }
+
+  .dropdown {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    background: var(--color-card-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    min-width: 12rem;
+    overflow: hidden;
+
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      font-size: 0.875rem;
+      color: var(--color-text);
+      transition: background 0.2s;
+      font-weight: 500;
+
+      &:hover {
+        background: var(--color-background-light);
+        color: var(--color-dark);
+      }
+
+      .item-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 1rem;
+        height: 1rem;
+        color: var(--color-text);
+
+        svg {
+          stroke: var(--color-text);
+        }
+      }
+    }
+  }
+}
+
+/* ===========================
+     WRAPPER AND HEADER
+=========================== */
+.wrapper {
+  max-width: 54rem;
+  margin: 0 auto;
+  text-align: center;
+  padding: 5rem 1.5rem 1.5rem;
   
-  p {
-    margin: 0;
-    color: #666;
-    font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.logo {
+  width: 5rem;
+  height: 5rem;
+  margin-bottom: 1rem;
+  background-image: url('/assets/chatlogo.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.header-text {
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+  font-size: 2.25rem;
+  color: var(--color-dark);
+}
+
+.subtext {
+  color: var(--color-text);
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  margin-bottom: 2rem;
+}
+
+/* ===========================
+      CARDS (Equally Aligned)
+=========================== */
+.card-row {
+  margin-top: 0;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  width: 100%;
+  margin-bottom: 3rem;
+
+  .card {
+    flex: 1;
+    max-width: 14rem;
+    background: var(--color-card-bg);
+    border: 1px solid var(--color-border);
+    padding: 1.25rem;
+    border-radius: 0.75rem;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+
+    .card-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .card-header {
+      font-weight: 600;
+      font-size: 1.1rem;
+      line-height: 1.3;
+      color: var(--color-dark);
+    }
+
+    .arrow-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.5rem;
+      height: 1.5rem;
+
+      svg circle {
+        stroke: var(--color-border);
+      }
+      svg path {
+        stroke: var(--color-text);
+      }
+    }
+
+    .card-sub-text {
+      font-size: 0.75rem;
+      font-weight: 400;
+      margin: 0;
+      color: var(--color-text);
+    }
+
+    &:hover {
+      background: #f0f4ff;
+      border-color: var(--color-primary);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+    }
+  }
+}
+
+/* ===========================
+      CHAT WINDOW
+=========================== */
+.chat-window {
+  width: 100%;
+  max-width: 48rem; /* Desktop width constraint */
+  max-height: 18rem;
+  overflow-y: auto;
+  border-radius: 0.75rem;
+  background: var(--color-card-bg);
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  text-align: left;
+  margin-bottom: 2rem;
+}
+
+.chat-bubble {
+  background: #f1f5f9;
+  color: var(--color-dark);
+  padding: 0.6rem 1rem;
+  border-radius: 0.875rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  max-width: 80%;
+}
+
+/* ===========================
+      INPUT BAR (Equally Aligned)
+=========================== */
+.input-bar {
+  width: 100%;
+  max-width: 48rem; /* Desktop width constraint */
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.5rem;
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+
+  input {
+    flex: 1;
+    padding: 0.75rem 0.5rem;
+    border: none;
+    border-radius: 0;
+    outline: none;
+    font-size: 1rem;
+    font-family: var(--font-family);
+    color: var(--color-dark);
+  }
+
+  /* BUTTON BASE STYLE */
+  .attach-btn, .send-btn {
+    padding: 0.5rem;
+    border: none;
+    cursor: pointer;
+    border-radius: 0.5rem;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 2.5rem;
+    width: 2.5rem;
+    flex-shrink: 0;
+  }
+
+  /* ATTACH BUTTON */
+  .attach-btn {
+    background: transparent;
+
+    &:hover {
+      background: var(--color-background-light);
+    }
+
+    .attach-icon {
+      width: 1.25rem;
+      height: 1.25rem;
+      filter: invert(30%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(50%) contrast(90%);
+    }
+  }
+
+  /* SEND BUTTON */
+  .send-btn {
+    background: var(--color-primary);
+    color: white;
+
+    &:hover {
+      background: #0069d9;
+    }
+
+    svg {
+      fill: currentColor;
+    }
+  }
+}
+
+/* ===========================
+     SCROLLBAR
+=========================== */
+.chat-window::-webkit-scrollbar {
+  width: 0.5rem;
+}
+
+.chat-window::-webkit-scrollbar-track {
+  background: var(--color-card-bg);
+}
+
+.chat-window::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 0.25rem;
+}
+
+.chat-window::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* ===========================
+     RESPONSIVE ADJUSTMENTS
+=========================== */
+
+/* Tablet and Smaller Desktop (<= 768px) */
+@media (max-width: 768px) {
+    .header-text {
+        font-size: 1.75rem;
+    }
+    
+    .card-row {
+        flex-direction: column; 
+        gap: 0.75rem;
+        align-items: center;
+    }
+    .card {
+        width: 100%;
+        max-width: 24rem;
+    }
+    .wrapper {
+        padding-top: 3rem;
+    }
+    .actions-menu {
+        top: 1rem;
+        right: 1rem;
+    }
+}
+
+/* ============================================
+   SMALL SCREENS (phones & small tablets)
+   width <= 640px
+============================================ */
+@media (max-width: 640px) {
+
+  .wrapper {
+    padding: 1.5rem 0.75rem 1rem;
+  }
+
+  /* Smaller title & subtitle */
+  .header-text {
+    font-size: 1.4rem;
+    line-height: 1.2;
+    margin-bottom: 0.5rem;
+    text-align: center;
+  }
+
+  .subtext {
+    font-size: 0.85rem;
+    line-height: 1.3;
+    margin-bottom: 1.2rem;
+    text-align: center;
+  }
+
+  /* --------- 2 cards per row --------- */
+  .card-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    width: 100%;
+    margin-bottom: 1.5rem;
+  }
+
+  .card-row .card {
+    max-width: 100%;
+    padding: 0.8rem;
+    border-radius: 0.6rem;
+  }
+
+  .card-row .card .card-header {
+    font-size: 0.9rem;
+    line-height: 1.2;
+  }
+
+  .card-row .card .card-sub-text {
+    font-size: 0.75rem;
+  }
+
+  /* Chat area smaller */
+  .chat-window {
+    max-height: 12rem;
+    padding: 0.75rem;
+  }
+
+  .chat-bubble {
+    font-size: 0.85rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  /* Compact input */
+  .input-bar {
+    padding: 0.35rem 0.5rem;
+    gap: 0.4rem;
+  }
+
+  .input-bar input {
+    font-size: 0.9rem;
+    padding: 0.55rem 0.5rem;
+  }
+
+  .send-btn,
+  .attach-btn {
+    width: 2rem;
+    height: 2rem;
   }
 }

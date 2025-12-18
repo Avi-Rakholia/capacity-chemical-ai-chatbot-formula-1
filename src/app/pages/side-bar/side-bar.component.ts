@@ -1,7 +1,7 @@
-import { Component, inject, OnInit, HostListener, computed, signal } from '@angular/core';
+import { Component, inject, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
-import { SupabaseService, AuthUser } from '../../core/services/supabase.service';
+import { SupabaseAuthService } from '../../core/services/supabase-auth.service';
 import { filter } from 'rxjs/operators';
 
 @Component({
@@ -10,24 +10,26 @@ import { filter } from 'rxjs/operators';
   imports: [CommonModule, RouterOutlet],
   templateUrl: './side-bar.component.html',
   styleUrls: ['./side-bar.component.scss'],
+  host: {
+    '(window:resize)': 'onResize()'
+  }
 })
 export class SideBarComponent implements OnInit {
-  private supabaseService = inject(SupabaseService);
+  private authService = inject(SupabaseAuthService);
   private router = inject(Router);
 
-  // Signals
-  currentUser = signal<AuthUser | null>(null);
+  // Current Supabase user → signal
+  currentUser = this.authService.currentUser;
+
   activeRoute = signal<string>('dashboard');
   profileMenuOpen = signal<boolean>(false);
 
-  // open state: true = expanded, false = collapsed
+  // Sidebar open (expanded) / collapsed
   open = signal<boolean>(true);
-
-  // Computed to switch styles in template
   isOpen = computed(() => this.open());
   isCollapsed = computed(() => !this.open());
 
-  // Mobile view detection
+  // Mobile view
   isMobileView = false;
 
   logoUrlExpanded = '/assets/capacity-chemical.svg';
@@ -38,44 +40,51 @@ export class SideBarComponent implements OnInit {
   ngOnInit() {
     this.checkWindowSize();
 
-    const initialUser = this.supabaseService.getCurrentUser();
-    if (initialUser) {
-      this.currentUser.set(initialUser);
+    /* ----------------------------------------------------
+         LOAD USER DEFAULT SIDEBAR MODE (expand/collapse)
+    ------------------------------------------------------*/
+    const savedMode = localStorage.getItem('sidebarMode');
+
+    if (savedMode === 'collapse') {
+      this.open.set(false); // collapsed by default
+    } 
+    else if (savedMode === 'expand') {
+      this.open.set(true); // expanded by default
     }
 
-    this.supabaseService.currentUser$.subscribe((user) => {
-      this.currentUser.set(user);
-
-      if (!user && initialUser) {
-        this.router.navigate(['/login']);
-      }
+    // Auth listener → redirect if logged out
+    this.authService.currentUser$.subscribe((user) => {
+      if (!user) this.router.navigate(['/login']);
     });
 
+    // Active route tracking
     this.updateActiveRoute();
-    this.router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe(() => {
-      this.updateActiveRoute();
-    });
+    this.router.events
+      .pipe(filter((e) => e instanceof NavigationEnd))
+      .subscribe(() => this.updateActiveRoute());
   }
+
+  /* ---------------------------------------
+     SIDEBAR OPEN/COLLAPSE BEHAVIOR
+  --------------------------------------- */
 
   toggleOpen(): void {
     this.open.update((v) => !v);
-    if (!this.open()) {
-      this.profileMenuOpen.set(false);
-    }
+    if (!this.open()) this.profileMenuOpen.set(false);
   }
 
   setOpen(value: boolean) {
     this.open.set(value);
-    if (!value) {
-      this.profileMenuOpen.set(false);
-    }
+    if (!value) this.profileMenuOpen.set(false);
   }
+
+  /* ---------------------------------------
+     ROUTING
+  --------------------------------------- */
 
   navigateTo(route: string): void {
     this.router.navigate([route]).then(() => {
-      if (this.isMobileView) {
-        this.open.set(false);
-      }
+      if (this.isMobileView) this.open.set(false);
       this.profileMenuOpen.set(false);
       this.updateActiveRoute();
     });
@@ -83,6 +92,7 @@ export class SideBarComponent implements OnInit {
 
   private updateActiveRoute(): void {
     const currentUrl = this.router.url;
+
     if (currentUrl.includes('chatbot')) this.activeRoute.set('chatbot');
     else if (currentUrl.includes('resources')) this.activeRoute.set('resources');
     else if (currentUrl.includes('approvals')) this.activeRoute.set('approvals');
@@ -96,29 +106,31 @@ export class SideBarComponent implements OnInit {
     this.profileMenuOpen.update((open) => !open);
   }
 
+  /* ---------------------------------------
+     USER DISPLAY FUNCTIONS
+  --------------------------------------- */
+
   getUserDisplayName(): string {
     const user = this.currentUser();
     if (!user) return 'User';
 
-    const username = user.metadata?.username || user.metadata?.display_name;
-    if (username) return username;
+    const username =
+      user.metadata?.username ||
+      user.metadata?.display_name ||
+      user.email?.split('@')[0];
 
-    return user.email?.split('@')[0] || 'User';
+    return username || 'User';
   }
 
   getUserAvatar(): string {
     const user = this.currentUser();
+
     if (user?.metadata?.avatar) return user.metadata.avatar;
 
-    const displayName = this.getUserDisplayName();
-    const initials = displayName
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase();
+    const name = this.getUserDisplayName();
 
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(
-      displayName
+      name
     )}&background=3498db&color=fff&size=40`;
   }
 
@@ -135,31 +147,46 @@ export class SideBarComponent implements OnInit {
     return roleMap[user.role] || user.role;
   }
 
+  /* ---------------------------------------
+     ADMIN CHECK — used by sidebar + home page
+  --------------------------------------- */
   isAdmin(): boolean {
     const user = this.currentUser();
     return user?.role === 'nsight' || user?.role === 'capacity';
   }
 
+  isUser(): boolean {
+    const user = this.currentUser();
+    return user?.role === 'user';
+  }
+
+  /* ---------------------------------------
+     LOGOUT
+  --------------------------------------- */
   async logout(): Promise<void> {
     this.profileMenuOpen.set(false);
-
-    const { error } = await this.supabaseService.signOut();
-
-    if (!error) {
-      this.router.navigate(['/login']);
-    } else {
-      console.error('Logout error:', error);
-    }
+    await this.authService.logout();
+    this.router.navigate(['/login']);
   }
 
-  @HostListener('window:resize', [])
-  onResize() {
-    this.checkWindowSize();
-  }
+  /* ---------------------------------------
+     RESPONSIVE BEHAVIOR
+  --------------------------------------- */
+  onResize = () => this.checkWindowSize();
 
   private checkWindowSize() {
     const w = window.innerWidth;
-    this.isMobileView = w < 640;
-    this.open.set(!this.isMobileView);
+    const mobile = w < 640;
+
+    /* ---------------------------------------------------------
+       When switching INTO mobile mode:
+       → collapse automatically ONCE
+       → do NOT override saved desktop preference
+    ----------------------------------------------------------*/
+    if (mobile && !this.isMobileView) {
+      this.open.set(false); // auto collapse on mobile
+    }
+
+    this.isMobileView = mobile;
   }
 }

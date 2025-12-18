@@ -1,0 +1,430 @@
+<div class="users-container">
+
+  <div class="page-header">
+
+    <!-- LEFT SIDE -->
+    <div class="header-content">
+      <h1 class="page-title">User Management</h1>
+    </div>
+
+    <!-- ⭐ RIGHT SIDE: Search + Sort (MATCHES PENDING APPROVAL PAGE) -->
+    <div class="header-actions">
+
+      <!-- SEARCH BOX -->
+      <div class="search-box">
+        <span class="icon-search"></span>
+        <input 
+          type="text" 
+          placeholder="Search Users"
+          (input)="onSearch($event)"
+        />
+      </div>
+
+      <!-- SORT BUTTON -->
+      <button 
+        class="sort-btn"
+        (click)="toggleSort()"
+        [title]="sortAsc() ? 'Sort Z–A' : 'Sort A–Z'">
+        <span class="icon-sort"></span>
+      </button>
+
+    </div>
+
+  </div>
+
+
+  @if (error()) {
+    <div class="alert alert-error">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      <span>{{ error() }}</span>
+      <button class="btn-close" (click)="error.set(null)">×</button>
+    </div>
+  }
+
+  <div class="status-tabs">
+    <button 
+      class="tab-btn"
+      [class.active]="statusFilter() === ''"
+      (click)="statusFilter.set(''); onFilterChange()"
+    >
+      All Users
+    </button>
+    <button 
+      class="tab-btn"
+      [class.active]="statusFilter() === 'Active'"
+      (click)="statusFilter.set('Active'); onFilterChange()"
+    >
+      Active
+    </button>
+    <button 
+      class="tab-btn"
+      [class.active]="statusFilter() === 'Inactive'"
+      (click)="statusFilter.set('Inactive'); onFilterChange()"
+    >
+      In-Active
+    </button>
+  </div>
+
+  <div class="table-container">
+    @if (loading()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading users...</p>
+      </div>
+    } @else if (filteredUsers().length === 0) {
+      <div class="empty-state">
+        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+        <h3>No users found</h3>
+        <p>{{ searchQuery() ? 'Try adjusting your search criteria' : 'Get started using the Add User button below' }}</p>
+      </div>
+    } @else {
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th>
+              <input 
+                type="checkbox" 
+                class="checkbox-input"
+                [checked]="allSelected()"
+                [indeterminate]="selectedUserIds().size > 0 && !allSelected()"
+                (change)="toggleSelectAll()"
+              />
+            </th>
+            <th>Employee</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th class="text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (user of filteredUsers(); track user.user_id) {
+            <tr [class.selected-row]="isSelected(user.user_id)"> <td>
+                <input 
+                  type="checkbox" 
+                  class="checkbox-input"
+                  [checked]="isSelected(user.user_id)"
+                  (change)="toggleSelect(user.user_id)"
+                />
+              </td>
+              <td>
+                <div class="user-cell">
+                  <div class="user-avatar">
+                    {{ user.username.charAt(0).toUpperCase() }}
+                  </div>
+                  <span class="user-name">{{ user.username }}</span>
+                </div>
+              </td>
+              <td class="email-cell">{{ user.email }}</td>
+              <td>
+                <span class="role-text">{{ user.role_name }}</span>
+              </td>
+              <td>
+                <span class="status-badge" [class]="getStatusClass(user.status)">
+                  {{ user.status }}
+                </span>
+              </td>
+              <td class="actions-cell" data-label="Actions">
+                <div class="action-buttons">
+                  <button 
+                    class="btn-icon btn-edit" 
+                    (click)="openEditModal(user)"
+                    title="Edit user"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      @if (totalPages() > 1) {
+        <div class="pagination">
+          </div>
+      }
+    }
+    
+    <div class="action-buttons-float">
+        <button class="btn btn-secondary" (click)="openCreateModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Add User
+        </button>
+        <button 
+            class="btn btn-primary" 
+            [disabled]="selectedUserIds().size === 0"
+            (click)="openEditModalFromFooter()"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+            Edit User
+        </button>
+    </div>
+  </div>
+</div>
+
+@if (showCreateModal()) {
+  <div class="modal-overlay" (click)="closeCreateModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Add New User</h2>
+        <button class="btn-close" (click)="closeCreateModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <form #createUserForm="ngForm" (ngSubmit)="createUser()"> 
+          <div class="form-group">
+            <label for="create-username">Username (required)</label>
+            <input 
+              type="text" 
+              id="create-username" 
+              class="form-input"
+              [(ngModel)]="createForm().username"
+              name="username"
+              required
+              placeholder="John Doe"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="create-email">Email (required)</label>
+            <input 
+              type="email" 
+              id="create-email" 
+              class="form-input"
+              [(ngModel)]="createForm().email"
+              name="email"
+              required
+              placeholder="user@capacitychemical.com"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Role (required)</label>
+            <div class="radio-row">
+              @for (role of roles; track role.id) {
+                <label class="radio-label">
+                  <input 
+                    type="radio" 
+                    name="create-role"
+                    [value]="role.id"
+                    [(ngModel)]="createForm().role_id"
+                    required
+                  />
+                  <span>{{ role.name }}</span>
+                </label>
+              }
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Status (required)</label>
+            <div class="radio-row">
+              <label class="radio-label">
+                <input 
+                  type="radio" 
+                  name="create-status"
+                  value="Active"
+                  [(ngModel)]="createForm().status"
+                  required
+                />
+                <span>Active</span>
+              </label>
+              <label class="radio-label">
+                <input 
+                  type="radio" 
+                  name="create-status"
+                  value="Inactive"
+                  [(ngModel)]="createForm().status"
+                  required
+                />
+                <span>In-Active</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button type="submit" class="btn btn-green" [disabled]="loading() || !createUserForm.valid">
+              {{ loading() ? 'Adding...' : 'Add' }}
+            </button>
+            <button type="button" class="btn btn-secondary" (click)="closeCreateModal()">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showEditModal() && selectedUser()) {
+  <div class="modal-overlay" (click)="closeEditModal()">
+    <div class="modal" (click)="$event.stopPropagation()"> 
+      
+      <div class="modal-header">
+        <h2>✏️ Edit User Details</h2>
+        <button class="btn-close" (click)="closeEditModal()">×</button>
+      </div>
+
+      <div class="modal-body">
+        @if (selectedUsers().length > 1) {
+          <div class="user-navigation">
+            <span class="nav-label">Editing:</span>
+            <div class="user-chips">
+              @for (user of selectedUsers(); track user.user_id; let i = $index) {
+                <button 
+                  class="user-chip"
+                  [class.active]="currentEditIndex() === i"
+                  (click)="switchEditUser(i)"
+                  type="button"
+                >
+                  <div class="chip-avatar">{{ user.username.charAt(0).toUpperCase() }}</div>
+                  {{ user.username }}
+                </button>
+              }
+            </div>
+          </div>
+        }
+
+        <form #editUserForm="ngForm" (ngSubmit)="updateUser()">
+
+          <div class="form-group">
+            <label for="edit-username">Username (required)</label>
+            <input 
+              id="edit-username"
+              class="form-input"
+              type="text"
+              [(ngModel)]="editForm().username"
+              name="username"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="edit-email">Email (required)</label>
+            <input 
+              id="edit-email"
+              class="form-input"
+              type="email"
+              [(ngModel)]="editForm().email"
+              name="email"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Role (required)</label>
+            <div class="radio-row">
+              @for (role of roles; track role.id) {
+                <label class="radio-label">
+                  <input 
+                    type="radio" 
+                    name="edit-role"
+                    [value]="role.id"
+                    [(ngModel)]="editForm().role_id"
+                    required
+                  />
+                  <span>{{ role.name }}</span>
+                </label>
+              }
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Status (required)</label>
+            <div class="radio-row">
+              <label class="radio-label">
+                <input 
+                  type="radio" 
+                  name="edit-status"
+                  value="Active"
+                  [(ngModel)]="editForm().status"
+                  required
+                />
+                <span>Active</span>
+              </label>
+              <label class="radio-label">
+                <input 
+                  type="radio" 
+                  name="edit-status"
+                  value="Inactive"
+                  [(ngModel)]="editForm().status"
+                  required
+                />
+                <span>In-Active</span>
+              </label>
+            </div>
+          </div>
+          
+          @if (selectedUsers().length > 1) {
+ <div class="preview-table">
+
+  <!-- Header Row -->
+  <div class="preview-row preview-header">
+    <div class="col-employee">Employee</div>
+    <div class="col-email">Email</div>
+    <div class="col-role">Role</div>
+    <div class="col-status">Status</div>
+  </div>
+
+  <!-- User Rows -->
+  @for (user of selectedUsers(); track user.user_id; let i = $index) {
+    <div 
+      class="preview-row preview-item"
+      [class.active]="currentEditIndex() === i"
+      (click)="switchEditUser(i)"
+    >
+      <div class="col-employee">
+        <div class="user-cell-sm">
+          <div class="user-avatar-sm">{{ user.username.charAt(0) }}</div>
+          <span>{{ user.username }}</span>
+        </div>
+      </div>
+
+      <div class="col-email">{{ user.email }}</div>
+
+      <div class="col-role">{{ user.role_name }}</div>
+
+      <div class="col-status">
+        <span class="status-badge" [class]="getStatusClass(user.status)">
+          {{ user.status }}
+        </span>
+      </div>
+    </div>
+  }
+</div>
+
+          }
+
+          <div class="modal-actions-right">
+            <button type="submit" class="btn btn-green" [disabled]="loading() || !editUserForm.valid">
+              {{ loading() ? 'Updating...' : 'Update' }}
+            </button>
+            <button type="button" class="btn btn-secondary" (click)="closeEditModal()">
+              Cancel
+            </button>
+          </div>
+
+        </form>
+      </div>
+
+    </div>
+  </div>
+}
