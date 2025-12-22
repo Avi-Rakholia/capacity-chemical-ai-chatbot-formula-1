@@ -18,6 +18,29 @@ import { ResourceService } from '../../services/resource.service';
 import { SupabaseAuthService } from '../../core/services/supabase-auth.service';
 import { Subscription } from 'rxjs';
 
+// Interfaces for attachment modal
+interface Quote {
+  id: string;
+  title?: string;
+  name?: string;
+  description?: string;
+  url?: string;
+}
+
+interface KnowledgeBaseItem {
+  id: string;
+  title?: string;
+  name?: string;
+  description?: string;
+  url?: string;
+}
+
+interface Template {
+  template_id: string;
+  title: string;
+  description?: string;
+}
+
 @Component({
   selector: 'app-chatbot',
   imports: [CommonModule, FormsModule],
@@ -48,6 +71,16 @@ export class ChatbotComponent implements OnInit, OnDestroy {
   selectedResources = signal<any[]>([]);
   showResourcePicker = signal(false);
   availableResources = signal<any[]>([]);
+  
+  // Attachment modal state
+  showAttachmentModal = signal(false);
+  activeTab = signal<'knowledgeBase' | 'quotes' | 'templates' | 'files'>('knowledgeBase');
+  availableQuotes = signal<any[]>([]);
+  availableKnowledgeBase = signal<any[]>([]);
+  availableTemplates = signal<any[]>([]);
+  selectedQuotes = signal<any[]>([]);
+  selectedKnowledgeBase = signal<any[]>([]);
+  selectedTemplates = signal<any[]>([]);
 
   private streamSubscription?: Subscription;
 
@@ -83,7 +116,9 @@ export class ChatbotComponent implements OnInit, OnDestroy {
           this.cdr.markForCheck();
         }
       },
-      error: (error: any) => console.error('Error loading resources:', error)
+      error: (error: any) => {
+        console.error('Error loading resources:', error);
+      }
     });
   }
 
@@ -144,8 +179,7 @@ export class ChatbotComponent implements OnInit, OnDestroy {
 
     // Clear input and attachments
     this.userMessage.set('');
-    this.selectedFiles.set([]);
-    this.selectedResources.set([]);
+    this.clearAllSelections();
 
     // Add placeholder for AI response
     const aiMsg: ChatMessage = {
@@ -160,6 +194,8 @@ export class ChatbotComponent implements OnInit, OnDestroy {
 
     const aiMsgIndex = this.messages().length - 1;
     const userId = this.authService.getUserId();
+    let lastUpdateTime = Date.now();
+    const updateThrottleMs = 50; // Update UI at most every 50ms
 
     if (!userId) {
       console.error('User not authenticated');
@@ -189,19 +225,25 @@ export class ChatbotComponent implements OnInit, OnDestroy {
           // Append chunk to AI response
           this.messages.update(msgs => {
             const updated = [...msgs];
-            const currentResponse = (updated[aiMsgIndex].response || '') + event.chunk;
+            // Keep the raw response in the data but display parsed version
+            const currentRawResponse = (updated[aiMsgIndex].response || '') + event.chunk;
             
             // Try to parse if we have what looks like complete JSON
-            let displayResponse = currentResponse;
-            if (currentResponse.includes('{') && currentResponse.includes('}')) {
+            let displayResponse = currentRawResponse;
+            if (currentRawResponse.includes('{') && currentRawResponse.includes('}')) {
               try {
-                const parsed = JSON.parse(currentResponse);
-                if (parsed && typeof parsed === 'object') {
-                  displayResponse = parsed.response || parsed.message || parsed.answer || currentResponse;
+                // Try to find and parse JSON from the response
+                const jsonMatch = currentRawResponse.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                  const parsed = JSON.parse(jsonMatch[0]);
+                  if (parsed && typeof parsed === 'object') {
+                    // Extract the actual response/message content
+                    displayResponse = parsed.response || parsed.message || parsed.answer || parsed.result || currentRawResponse;
+                  }
                 }
               } catch (e) {
                 // Not complete JSON yet, keep building
-                displayResponse = currentResponse;
+                displayResponse = currentRawResponse;
               }
             }
             
@@ -211,7 +253,13 @@ export class ChatbotComponent implements OnInit, OnDestroy {
             };
             return updated;
           });
-          this.cdr.markForCheck();
+          
+          // Throttle change detection to prevent excessive re-renders
+          const now = Date.now();
+          if (now - lastUpdateTime >= updateThrottleMs) {
+            this.cdr.markForCheck();
+            lastUpdateTime = now;
+          }
         }
 
         if (event.done) {
@@ -222,10 +270,13 @@ export class ChatbotComponent implements OnInit, OnDestroy {
             
             // Try to parse JSON response and extract the actual message
             try {
-              const parsed = JSON.parse(finalResponse);
-              if (parsed && typeof parsed === 'object') {
-                // Extract response from various possible JSON structures
-                finalResponse = parsed.response || parsed.message || parsed.answer || finalResponse;
+              const jsonMatch = finalResponse.match(/\{[\s\S]*\}/);
+              if (jsonMatch) {
+                const parsed = JSON.parse(jsonMatch[0]);
+                if (parsed && typeof parsed === 'object') {
+                  // Extract response from various possible JSON structures
+                  finalResponse = parsed.response || parsed.message || parsed.answer || parsed.result || finalResponse;
+                }
               }
             } catch (e) {
               // If not JSON, use the response as-is
@@ -260,6 +311,94 @@ export class ChatbotComponent implements OnInit, OnDestroy {
     });
   }
 
+  // Toggle attachment modal
+  toggleAttachmentModal(): void {
+    this.showAttachmentModal.set(!this.showAttachmentModal());
+    if (this.showAttachmentModal()) {
+      this.loadAvailableItems();
+    }
+  }
+
+  // Close attachment modal
+  closeAttachmentModal(): void {
+    this.showAttachmentModal.set(false);
+  }
+
+  // Get total selected count for all attachment types
+  getTotalSelectedCount(): number {
+    return this.selectedFiles().length + 
+           this.selectedResources().length + 
+           this.selectedQuotes().length + 
+           this.selectedKnowledgeBase().length + 
+           this.selectedTemplates().length;
+  }
+
+  // Load available items for the modal
+  private loadAvailableItems(): void {
+    const resources = this.availableResources();
+    
+    // Categorize resources based on their category field
+    const knowledgeResources = resources.filter(r => r.category === 'knowledge');
+    const quoteResources = resources.filter(r => r.category === 'quotes');
+    
+    // Set knowledge base items from resources with 'knowledge' category
+    this.availableKnowledgeBase.set(knowledgeResources.map(resource => ({
+      id: resource.resource_id.toString(),
+      title: resource.file_name,
+      description: resource.description || `Knowledge resource: ${resource.file_name}`,
+      url: resource.file_url
+    })));
+    
+    // Set quotes from resources with 'quotes' category
+    this.availableQuotes.set(quoteResources.map(resource => ({
+      id: resource.resource_id.toString(),
+      title: resource.file_name,
+      description: resource.description || `Quote resource: ${resource.file_name}`,
+      url: resource.file_url
+    })));
+    
+    // Load templates that are already loaded
+    const templates = this.templates();
+    this.availableTemplates.set(templates.map((template: any) => ({
+      template_id: template.template_id,
+      title: template.title,
+      description: template.description || (template.content ? template.content.substring(0, 100) + '...' : 'Template content')
+    })));
+  }
+
+  // File drag and drop handlers
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  onFileDrop(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    const files = event.dataTransfer?.files;
+    if (files) {
+      this.handleFileSelection(Array.from(files));
+    }
+  }
+
+  // Handle file selection (used by both click and drag-drop)
+  private handleFileSelection(files: File[]): void {
+    const currentFiles = this.selectedFiles();
+    const newFiles = [...currentFiles, ...files];
+    this.selectedFiles.set(newFiles);
+  }
+
+  // Clear all selections after sending message
+  clearAllSelections(): void {
+    this.selectedFiles.set([]);
+    this.selectedResources.set([]);
+    this.selectedQuotes.set([]);
+    this.selectedKnowledgeBase.set([]);
+    this.selectedTemplates.set([]);
+    this.showAttachmentModal.set(false);
+  }
+
   // Build attachments array from selected files and resources
   private buildAttachments(): ChatAttachment[] {
     const attachments: ChatAttachment[] = [];
@@ -284,10 +423,40 @@ export class ChatbotComponent implements OnInit, OnDestroy {
       });
     });
 
+    // Add quotes
+    this.selectedQuotes().forEach(quote => {
+      attachments.push({
+        attachment_type: 'resource_reference',
+        resource_id: quote.id,
+        file_name: `Quote: ${quote.title || quote.name}`,
+        file_url: quote.url || ''
+      });
+    });
+
+    // Add knowledge base items
+    this.selectedKnowledgeBase().forEach(kb => {
+      attachments.push({
+        attachment_type: 'resource_reference',
+        resource_id: kb.id,
+        file_name: `KB: ${kb.title || kb.name}`,
+        file_url: kb.url || ''
+      });
+    });
+
+    // Add templates
+    this.selectedTemplates().forEach(template => {
+      attachments.push({
+        attachment_type: 'resource_reference',
+        resource_id: template.template_id,
+        file_name: `Template: ${template.title}`,
+        file_url: ''
+      });
+    });
+
     return attachments;
   }
 
-  private formatFileSize(bytes: number): string {
+  formatFileSize(bytes: number): string {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
@@ -301,6 +470,31 @@ export class ChatbotComponent implements OnInit, OnDestroy {
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;   // ✅ Correct strong typing
 
   triggerFileInput() {
+    // Open attachment modal instead of direct file input
+    this.showAttachmentModal.set(true);
+    this.loadAttachmentOptions();
+    this.cdr.markForCheck();
+  }
+
+  // Load data for attachment modal
+  loadAttachmentOptions() {
+    // Load quotes (you'll need to implement the quotes service)
+    // this.quotesService.getQuotes().subscribe(quotes => this.availableQuotes.set(quotes));
+    
+    // Load knowledge base items (you'll need to implement this service)
+    // this.knowledgeBaseService.getItems().subscribe(items => this.availableKnowledgeBase.set(items));
+    
+    // Templates are already loaded in loadTemplates()
+    const templates = this.templates();
+    this.availableTemplates.set(templates.map((template: any) => ({
+      template_id: template.template_id,
+      title: template.title,
+      description: template.description || (template.content ? template.content.substring(0, 100) + '...' : 'Template content')
+    })));
+  }
+
+  // Direct file input trigger (for when user selects "Files" in modal)
+  triggerDirectFileInput() {
     if (this.fileInput) {
       this.fileInput.nativeElement.click();
     } else {
@@ -329,8 +523,7 @@ export class ChatbotComponent implements OnInit, OnDestroy {
     const files = input.files;
 
     if (files && files.length > 0) {
-      const fileArray = Array.from(files);
-      this.selectedFiles.update(existing => [...existing, ...fileArray]);
+      this.handleFileSelection(Array.from(files));
       console.log("Selected files:", this.selectedFiles());
       
       // Reset input to allow selecting the same file again
@@ -339,13 +532,62 @@ export class ChatbotComponent implements OnInit, OnDestroy {
   }
 
   // Remove file from selection
-  removeFile(index: number) {
-    this.selectedFiles.update(files => files.filter((_, i) => i !== index));
+  removeFile(file: File) {
+    this.selectedFiles.update(files => files.filter(f => f !== file));
   }
 
   // Remove resource from selection
   removeResource(index: number) {
     this.selectedResources.update(resources => resources.filter((_, i) => i !== index));
+  }
+
+  // Add quote attachment
+  toggleQuoteSelection(quote: any) {
+    const currentQuotes = this.selectedQuotes();
+    const isSelected = currentQuotes.find(q => q.id === quote.id);
+    
+    if (isSelected) {
+      this.selectedQuotes.update(quotes => quotes.filter(q => q.id !== quote.id));
+    } else {
+      this.selectedQuotes.update(quotes => [...quotes, quote]);
+    }
+  }
+
+  // Add knowledge base attachment
+  toggleKnowledgeBaseSelection(item: any) {
+    const currentItems = this.selectedKnowledgeBase();
+    const isSelected = currentItems.find(kb => kb.id === item.id);
+    
+    if (isSelected) {
+      this.selectedKnowledgeBase.update(items => items.filter(kb => kb.id !== item.id));
+    } else {
+      this.selectedKnowledgeBase.update(items => [...items, item]);
+    }
+  }
+
+  // Add template attachment
+  toggleTemplateSelection(template: any) {
+    const currentTemplates = this.selectedTemplates();
+    const isSelected = currentTemplates.find(t => t.template_id === template.template_id);
+    
+    if (isSelected) {
+      this.selectedTemplates.update(templates => templates.filter(t => t.template_id !== template.template_id));
+    } else {
+      this.selectedTemplates.update(templates => [...templates, template]);
+    }
+  }
+
+  // Remove different types of attachments
+  removeQuote(index: number) {
+    this.selectedQuotes.update(quotes => quotes.filter((_, i) => i !== index));
+  }
+
+  removeKnowledgeBaseItem(index: number) {
+    this.selectedKnowledgeBase.update(items => items.filter((_, i) => i !== index));
+  }
+
+  removeTemplate(index: number) {
+    this.selectedTemplates.update(templates => templates.filter((_, i) => i !== index));
   }
 
   // Toggle resource picker

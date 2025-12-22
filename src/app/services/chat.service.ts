@@ -32,7 +32,7 @@ export interface ChatMessage {
 export interface ChatAttachment {
   attachment_id?: number;
   interaction_id?: number;
-  attachment_type: 'local_file' | 'resource_reference';
+  attachment_type: 'local_file' | 'resource_reference' | 'quote' | 'knowledge_base' | 'template';
   file_name?: string;
   file_url?: string;
   resource_id?: number;

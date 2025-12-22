@@ -130,9 +130,55 @@
     </div>
 
 
-    <!-- Input Area -->
-    <div class="input-bar">
+    <!-- Attachment Preview Area -->
+    <div class="attachment-preview" *ngIf="!showTemplates() && getTotalSelectedCount() > 0">
+      <div class="attachment-count">
+        <span class="count-badge">{{ getTotalSelectedCount() }}</span>
+        <span class="count-label">attachment{{ getTotalSelectedCount() > 1 ? 's' : '' }} selected</span>
+        <button type="button" class="clear-all-btn" (click)="clearAllSelections()" title="Clear all attachments">✕</button>
+      </div>
+      
+      <div class="attachment-list">
+        @for (file of selectedFiles(); track file.name) {
+          <div class="attachment-chip file">
+            <span class="chip-icon">📎</span>
+            <span class="chip-text">{{ file.name }}</span>
+            <button type="button" class="chip-remove" (click)="removeFile(file)">×</button>
+          </div>
+        }
+        @for (resource of selectedResources(); track resource.resource_id) {
+          <div class="attachment-chip resource">
+            <span class="chip-icon">🔗</span>
+            <span class="chip-text">{{ resource.file_name }}</span>
+            <button type="button" class="chip-remove" (click)="removeResource(resource)">×</button>
+          </div>
+        }
+        @for (quote of selectedQuotes(); track quote.id) {
+          <div class="attachment-chip quote">
+            <span class="chip-icon">💬</span>
+            <span class="chip-text">{{ quote.title || quote.name }}</span>
+            <button type="button" class="chip-remove" (click)="toggleQuoteSelection(quote)">×</button>
+          </div>
+        }
+        @for (kb of selectedKnowledgeBase(); track kb.id) {
+          <div class="attachment-chip knowledge">
+            <span class="chip-icon">📚</span>
+            <span class="chip-text">{{ kb.title || kb.name }}</span>
+            <button type="button" class="chip-remove" (click)="toggleKnowledgeBaseSelection(kb)">×</button>
+          </div>
+        }
+        @for (template of selectedTemplates(); track template.template_id) {
+          <div class="attachment-chip template">
+            <span class="chip-icon">📋</span>
+            <span class="chip-text">{{ template.title }}</span>
+            <button type="button" class="chip-remove" (click)="toggleTemplateSelection(template)">×</button>
+          </div>
+        }
+      </div>
+    </div>
 
+    <!-- Input Area -->
+    <div class="input-bar" >
       <input 
         type="text" 
         placeholder="Type your query here..." 
@@ -143,7 +189,7 @@
       />
 
       <!-- Attach Document Button -->
-      <button class="attach-btn" (click)="triggerFileInput()" [disabled]="isStreaming()">
+      <button class="attach-btn" (click)="toggleAttachmentModal()" [disabled]="isStreaming()">
         <img src="/assets/attach-document.svg" class="attach-icon" alt="Attach" />
       </button>
 
@@ -154,6 +200,7 @@
         (change)="onFileSelected($event)"
         accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
         style="display:none"
+        multiple
       />
 
       <!-- Send Button -->
@@ -168,3 +215,177 @@
   </div>
 
 </div>
+
+<!-- Attachment Modal -->
+<div *ngIf="showAttachmentModal()" class="modal-overlay" (click)="closeAttachmentModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Add Attachments</h3>
+      <button type="button" class="close-btn" (click)="closeAttachmentModal()">×</button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="attachment-tabs">
+        <button 
+          type="button" 
+          class="tab-btn" 
+          [class.active]="activeTab() === 'knowledgeBase'"
+          (click)="activeTab.set('knowledgeBase')">
+          Knowledge Base
+        </button>
+        <button 
+          type="button" 
+          class="tab-btn" 
+          [class.active]="activeTab() === 'quotes'"
+          (click)="activeTab.set('quotes')">
+          Quotes
+        </button>
+        <button 
+          type="button" 
+          class="tab-btn" 
+          [class.active]="activeTab() === 'templates'"
+          (click)="activeTab.set('templates')">
+          Templates
+        </button>
+        <button 
+          type="button" 
+          class="tab-btn" 
+          [class.active]="activeTab() === 'files'"
+          (click)="activeTab.set('files')">
+          Files
+        </button>
+      </div>
+      
+      <div class="tab-content">
+        <!-- Knowledge Base Tab -->
+        <div *ngIf="activeTab() === 'knowledgeBase'" class="tab-panel">
+          <div class="items-list">
+            @if (availableKnowledgeBase().length === 0) {
+              <div class="no-items">No knowledge base items available</div>
+            } @else {
+              @for (kb of availableKnowledgeBase(); track kb.id) {
+                <div 
+                  class="item-row" 
+                  [class.selected]="selectedKnowledgeBase().includes(kb)"
+                  (click)="toggleKnowledgeBaseSelection(kb)">
+                  <div class="item-icon">📚</div>
+                  <div class="item-info">
+                    <div class="item-title">{{ kb.title || kb.name }}</div>
+                    <div class="item-description">{{ kb.description || 'Knowledge base item' }}</div>
+                  </div>
+                  <div class="item-checkbox">
+                    <input 
+                      type="checkbox" 
+                      [checked]="selectedKnowledgeBase().includes(kb)"
+                      (click)="$event.stopPropagation()"
+                      (change)="toggleKnowledgeBaseSelection(kb)">
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        </div>
+        
+        <!-- Quotes Tab -->
+        <div *ngIf="activeTab() === 'quotes'" class="tab-panel">
+          <div class="items-list">
+            @if (availableQuotes().length === 0) {
+              <div class="no-items">No quotes available</div>
+            } @else {
+              @for (quote of availableQuotes(); track quote.id) {
+                <div 
+                  class="item-row" 
+                  [class.selected]="selectedQuotes().includes(quote)"
+                  (click)="toggleQuoteSelection(quote)">
+                  <div class="item-icon">💬</div>
+                  <div class="item-info">
+                    <div class="item-title">{{ quote.title || quote.name }}</div>
+                    <div class="item-description">{{ quote.description || 'Quote item' }}</div>
+                  </div>
+                  <div class="item-checkbox">
+                    <input 
+                      type="checkbox" 
+                      [checked]="selectedQuotes().includes(quote)"
+                      (click)="$event.stopPropagation()"
+                      (change)="toggleQuoteSelection(quote)">
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        </div>
+        
+        <!-- Templates Tab -->
+        <div *ngIf="activeTab() === 'templates'" class="tab-panel">
+          <div class="items-list">
+            @if (availableTemplates().length === 0) {
+              <div class="no-items">No templates available</div>
+            } @else {
+              @for (template of availableTemplates(); track template.template_id) {
+                <div 
+                  class="item-row" 
+                  [class.selected]="selectedTemplates().includes(template)"
+                  (click)="toggleTemplateSelection(template)">
+                  <div class="item-icon">📋</div>
+                  <div class="item-info">
+                    <div class="item-title">{{ template.title }}</div>
+                    <div class="item-description">{{ template.description || 'Template item' }}</div>
+                  </div>
+                  <div class="item-checkbox">
+                    <input 
+                      type="checkbox" 
+                      [checked]="selectedTemplates().includes(template)"
+                      (click)="$event.stopPropagation()"
+                      (change)="toggleTemplateSelection(template)">
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        </div>
+        
+        <!-- Files Tab -->
+        <div *ngIf="activeTab() === 'files'" class="tab-panel">
+          <div class="file-upload-area" (click)="triggerFileInput()" (dragover)="onDragOver($event)" (drop)="onFileDrop($event)">
+            <div class="upload-icon">📁</div>
+            <div class="upload-text">
+              <p>Click to select files or drag and drop</p>
+              <p class="upload-subtext">PDF, DOC, XLS, PNG, JPG supported</p>
+            </div>
+          </div>
+          
+          @if (selectedFiles().length > 0) {
+            <div class="selected-files">
+              <h4>Selected Files:</h4>
+              @for (file of selectedFiles(); track file.name) {
+                <div class="file-item">
+                  <span class="file-icon">📎</span>
+                  <span class="file-name">{{ file.name }}</span>
+                  <span class="file-size">({{ formatFileSize(file.size) }})</span>
+                  <button type="button" class="remove-file-btn" (click)="removeFile(file)">×</button>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button type="button" class="cancel-btn" (click)="closeAttachmentModal()">Cancel</button>
+      <button type="button" class="attach-selected-btn" (click)="closeAttachmentModal()">
+        Attach Selected ({{ getTotalSelectedCount() }})
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden File Input -->
+<input 
+  type="file" 
+  #fileInput
+  (change)="onFileSelected($event)"
+  accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
+  style="display:none"
+  multiple
+/>
