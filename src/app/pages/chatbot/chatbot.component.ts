@@ -189,9 +189,25 @@ export class ChatbotComponent implements OnInit, OnDestroy {
           // Append chunk to AI response
           this.messages.update(msgs => {
             const updated = [...msgs];
+            const currentResponse = (updated[aiMsgIndex].response || '') + event.chunk;
+            
+            // Try to parse if we have what looks like complete JSON
+            let displayResponse = currentResponse;
+            if (currentResponse.includes('{') && currentResponse.includes('}')) {
+              try {
+                const parsed = JSON.parse(currentResponse);
+                if (parsed && typeof parsed === 'object') {
+                  displayResponse = parsed.response || parsed.message || parsed.answer || currentResponse;
+                }
+              } catch (e) {
+                // Not complete JSON yet, keep building
+                displayResponse = currentResponse;
+              }
+            }
+            
             updated[aiMsgIndex] = {
               ...updated[aiMsgIndex],
-              response: (updated[aiMsgIndex].response || '') + event.chunk
+              response: displayResponse
             };
             return updated;
           });
@@ -202,11 +218,24 @@ export class ChatbotComponent implements OnInit, OnDestroy {
           // Finalize streaming
           this.messages.update(msgs => {
             const updated = [...msgs];
+            let finalResponse = event.full_response || updated[aiMsgIndex].response;
+            
+            // Try to parse JSON response and extract the actual message
+            try {
+              const parsed = JSON.parse(finalResponse);
+              if (parsed && typeof parsed === 'object') {
+                // Extract response from various possible JSON structures
+                finalResponse = parsed.response || parsed.message || parsed.answer || finalResponse;
+              }
+            } catch (e) {
+              // If not JSON, use the response as-is
+            }
+            
             updated[aiMsgIndex] = {
               ...updated[aiMsgIndex],
               isStreaming: false,
               interaction_id: event.interaction_id,
-              response: event.full_response || updated[aiMsgIndex].response
+              response: finalResponse
             };
             return updated;
           });

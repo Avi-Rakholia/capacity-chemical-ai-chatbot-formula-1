@@ -311,6 +311,113 @@ body {
 }
 
 /* ===========================
+     CHAT WINDOW & BUBBLES
+=========================== */
+.chat-window {
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.chat-bubble {
+  display: flex;
+  margin-bottom: 1rem;
+  animation: fadeInUp 0.3s ease-out;
+  
+  &.user {
+    justify-content: flex-end;
+    
+    .message-content {
+      background: var(--color-primary);
+      color: white;
+      border-radius: 1rem 1rem 0.25rem 1rem;
+      max-width: 80%;
+      padding: 0.75rem 1rem;
+      position: relative;
+      box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2);
+      
+      .message-text {
+        font-size: 0.9rem;
+        line-height: 1.4;
+        word-wrap: break-word;
+      }
+      
+      .attachments {
+        margin-top: 0.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        
+        .attachment-item {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 0.8rem;
+          opacity: 0.9;
+          
+          .attachment-icon {
+            font-size: 0.9rem;
+          }
+          
+          .attachment-name {
+            font-weight: 500;
+          }
+        }
+      }
+    }
+  }
+  
+  &.ai {
+    justify-content: flex-start;
+    
+    .message-content {
+      background: var(--color-card-bg);
+      color: var(--color-dark);
+      border: 1px solid var(--color-border);
+      border-radius: 1rem 1rem 1rem 0.25rem;
+      max-width: 80%;
+      padding: 0.75rem 1rem;
+      position: relative;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      
+      .message-text {
+        font-size: 0.9rem;
+        line-height: 1.4;
+        word-wrap: break-word;
+        
+        .streaming-cursor {
+          animation: blink 1s infinite;
+          color: var(--color-primary);
+          font-weight: bold;
+        }
+      }
+    }
+  }
+}
+
+/* Animation for new messages */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Blinking cursor for streaming */
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* ===========================
      SCROLLBAR
 =========================== */
 .chat-window::-webkit-scrollbar {
@@ -409,13 +516,17 @@ body {
 
   /* Chat area smaller */
   .chat-window {
-    max-height: 12rem;
+    max-height: 40vh;
     padding: 0.75rem;
   }
 
   .chat-bubble {
-    font-size: 0.85rem;
-    padding: 0.5rem 0.75rem;
+    &.user .message-content,
+    &.ai .message-content {
+      max-width: 90%;
+      font-size: 0.85rem;
+      padding: 0.6rem 0.8rem;
+    }
   }
 
   /* Compact input */

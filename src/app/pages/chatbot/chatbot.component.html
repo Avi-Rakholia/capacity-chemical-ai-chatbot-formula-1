@@ -46,13 +46,13 @@
   <!-- MAIN WRAPPER -->
   <div class="wrapper">
 
-    <!-- Logo -->
-    <div class="logo"></div>
+    <!-- Logo - Show only when templates are visible -->
+    <div class="logo" *ngIf="showTemplates()"></div>
 
-    <!-- Heading -->
-    <h1 class="header-text">How can we assist you today?</h1>
+    <!-- Heading - Show only when templates are visible -->
+    <h1 class="header-text" *ngIf="showTemplates()">How can we assist you today?</h1>
 
-    <p class="subtext">
+    <p class="subtext" *ngIf="showTemplates()">
       Start by searching a new formula, and let the bot do the tedious work.<br>
       Not sure where to start?
     </p>
