@@ -64,6 +64,7 @@ export class ChatbotComponent implements OnInit, OnDestroy {
   showTemplates = signal(true);
   templates = signal<ChatTemplate[]>([]);
   currentSessionId = signal<number | null>(null);
+  conversationId = signal<string | null>(null); // Python AI service conversation ID
   isStreaming = signal(false);
   
   // File attachment state
@@ -137,6 +138,10 @@ export class ChatbotComponent implements OnInit, OnDestroy {
       next: (response) => {
         if (response.success) {
           this.currentSessionId.set(response.data.chat_session_id);
+          // Store conversation_id from the session if available
+          if (response.data.conversation_id) {
+            this.conversationId.set(response.data.conversation_id);
+          }
           this.messages.set([]);
           this.showTemplates.set(true);
           this.cdr.markForCheck();
@@ -290,6 +295,13 @@ export class ChatbotComponent implements OnInit, OnDestroy {
             };
             return updated;
           });
+          
+          // Store conversation_id if received from server
+          if (event.conversation_id) {
+            this.conversationId.set(event.conversation_id);
+            console.log('Stored conversation_id:', event.conversation_id);
+          }
+          
           this.isStreaming.set(false);
           this.cdr.markForCheck();
         }

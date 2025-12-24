@@ -13,6 +13,7 @@ export interface ChatSession {
   linked_formula_id?: number;
   summary?: string;
   metadata?: any;
+  conversation_id?: string;
 }
 
 export interface ChatMessage {
@@ -57,6 +58,7 @@ export interface StreamEvent {
   full_response?: string;
   error?: boolean;
   message?: string;
+  conversation_id?: string;
 }
 
 @Injectable({
