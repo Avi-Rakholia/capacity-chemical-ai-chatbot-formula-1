@@ -16,6 +16,7 @@ import { FormsModule } from '@angular/forms';
 import { ChatService, ChatMessage, ChatTemplate, ChatAttachment, StreamEvent } from '../../services/chat.service';
 import { ResourceService } from '../../services/resource.service';
 import { SupabaseAuthService } from '../../core/services/supabase-auth.service';
+import { MarkdownPipe } from '../../shared/pipes/markdown.pipe';
 import { Subscription } from 'rxjs';
 
 // Interfaces for attachment modal
@@ -43,7 +44,7 @@ interface Template {
 
 @Component({
   selector: 'app-chatbot',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MarkdownPipe],
   templateUrl: './chatbot.component.html',
   styleUrls: ['./chatbot.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -66,6 +67,8 @@ export class ChatbotComponent implements OnInit, OnDestroy {
   currentSessionId = signal<number | null>(null);
   conversationId = signal<string | null>(null); // Python AI service conversation ID
   isStreaming = signal(false);
+  // Explicit mode selected via the cards: 'search' | 'create' | 'quote' | null
+  selectedMode = signal<'search' | 'create' | 'quote' | null>(null);
   
   // File attachment state
   selectedFiles = signal<File[]>([]);
@@ -223,7 +226,8 @@ export class ChatbotComponent implements OnInit, OnDestroy {
       sessionId,
       message,
       userId,
-      userMsg.attachments
+      userMsg.attachments,
+      this.selectedMode()
     ).subscribe({
       next: (event: StreamEvent) => {
         if (event.chunk) {
@@ -616,17 +620,24 @@ export class ChatbotComponent implements OnInit, OnDestroy {
 
   // Card actions
   onSearchFormula() {
-    // TODO: Implement search formula navigation
-    console.log("→ Navigating to Search Formula…");
+    // Select explicit mode and update UI
+    this.selectedMode.set('search');
+    this.showTemplates.set(false);
+    this.userMessage.set('Find formulas for ');
+    this.cdr.markForCheck();
   }
 
   onCreateFormula() {
-    // TODO: Implement create formula navigation
-    console.log("→ Opening Create Formula…");
+    this.selectedMode.set('create');
+    this.showTemplates.set(false);
+    this.userMessage.set('Create a new formula for ');
+    this.cdr.markForCheck();
   }
 
   onGenerateQuote() {
-    // TODO: Implement quote generator navigation
-    console.log("→ Preparing Quote Generator…");
+    this.selectedMode.set('quote');
+    this.showTemplates.set(false);
+    this.userMessage.set('Generate a quote for ');
+    this.cdr.markForCheck();
   }
 }

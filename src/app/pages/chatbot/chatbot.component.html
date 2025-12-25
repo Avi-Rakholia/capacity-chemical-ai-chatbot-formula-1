@@ -121,8 +121,7 @@
 
         <!-- AI message -->
         <div *ngIf="!msg.isUser" class="message-content">
-          <div class="message-text">
-            {{ msg.response || '' }}
+          <div class="message-text markdown-content" [innerHTML]="msg.response | markdown">
             <span *ngIf="msg.isStreaming" class="streaming-cursor">▊</span>
           </div>
         </div>

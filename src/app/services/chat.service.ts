@@ -122,7 +122,8 @@ export class ChatService {
     sessionId: number,
     message: string,
     userId: number,
-    attachments?: ChatAttachment[]
+    attachments?: ChatAttachment[],
+    mode?: string
   ): Subject<StreamEvent> {
     const subject = new Subject<StreamEvent>();
     const url = `${this.apiUrl}/stream`;
@@ -133,7 +134,8 @@ export class ChatService {
       session_id: sessionId,
       message: message,
       user_id: userId,
-      attachments: attachments || []
+      attachments: attachments || [],
+      mode: mode
     }, subject);
 
     return subject;
