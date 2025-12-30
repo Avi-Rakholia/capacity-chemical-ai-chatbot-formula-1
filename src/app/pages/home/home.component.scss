@@ -5,8 +5,8 @@
   width: 100%;
   min-height: 100vh;
   display: flex;
-  justify-content: center;     /* center grid horizontally */
-  align-items: center;         /* center grid vertically */
+  justify-content: center;
+  align-items: flex-start;   /* ✅ FIX */
   padding: 2rem;
   box-sizing: border-box;
 }
@@ -18,9 +18,12 @@
   display: grid;
   grid-template-columns: repeat(3, 220px);
   grid-auto-rows: 220px;
-  gap: 3rem 3rem;               /* row-gap:3rem, column-gap:3rem */
+  gap: 3rem 3rem;
+
   justify-content: center;
-  align-content: center;
+  align-content: flex-start;
+
+  width: calc(220px * 3 + 3rem * 2); /* 🔥 REQUIRED */
 }
 
 /* ----------------------------------------------------
@@ -123,5 +126,14 @@
 
   .card-title {
     font-size: 0.85rem;
+  }
+}
+/* ---------------------------------------------
+   DESKTOP ONLY — CENTER LAST CARD WHEN 4 CARDS
+--------------------------------------------- */
+@media (min-width: 1025px) {
+  .center-last {
+    grid-column: 1 / -1;
+    justify-self: center;
   }
 }

@@ -131,11 +131,7 @@ export class ApprovalsComponent implements OnInit {
 
   /* TABLE DATA */
   rows: RequestRow[] = [
-    { id: 1, formula: 'aink Lotion Formula', dateRequested: '11-17-2025', dateResponded: '11-17-2025', status: 'Pending' },
-    { id: 2, formula: 'bink Lotion Formula', dateRequested: '11-19-2025', dateResponded: '11-19-2025', status: 'Pending' },
-    { id: 3, formula: 'cink Lotion Formula', dateRequested: '11-11-2025', dateResponded: '11-11-2025', status: 'Approved' },
-    { id: 4, formula: 'Pink Lotion Formula', dateRequested: '11-13-2025', dateResponded: '11-13-2025', status: 'Approved' },
-    { id: 5, formula: 'Pink Lotion Formula', dateRequested: '11-17-2025', dateResponded: '11-17-2025', status: 'Rejected' },
+    
   ];
 
   /* FILTERED ROWS (TAB + SEARCH + SORT) */

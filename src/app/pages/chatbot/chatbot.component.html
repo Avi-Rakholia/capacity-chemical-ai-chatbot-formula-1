@@ -103,7 +103,12 @@
 
 
     <!-- Chat Window - Show after first message -->
-    <div class="chat-window" *ngIf="!showTemplates() && messages().length > 0">
+    <div
+  class="chat-window"
+  *ngIf="!showTemplates() && messages().length > 0"
+  #chatWindow
+>
+
       <div *ngFor="let msg of messages()" [class]="msg.isUser ? 'chat-bubble user' : 'chat-bubble ai'">
         
         <!-- User message -->
@@ -120,11 +125,28 @@
         </div>
 
         <!-- AI message -->
-        <div *ngIf="!msg.isUser" class="message-content">
-          <div class="message-text markdown-content" [innerHTML]="msg.response | markdown">
-            <span *ngIf="msg.isStreaming" class="streaming-cursor">▊</span>
-          </div>
-        </div>
+        <div *ngIf="!msg.isUser" class="ai-message-wrapper">
+
+  <!-- AI bubble -->
+  <div class="message-content">
+    <div class="message-text markdown-content" [innerHTML]="msg.response">
+      <span *ngIf="msg.isStreaming" class="streaming-cursor">▊</span>
+    </div>
+  </div>
+
+  <!-- AI actions (outside bubble) -->
+  <div class="ai-actions">
+    <button type="button" title="Copy" (click)="copyMessage(msg.response)">
+      <img src="/assets/copy.svg" alt="Copy" />
+    </button>
+
+    <button type="button" title="Share" (click)="shareMessage(msg.response)">
+      <img src="/assets/share.svg" alt="Share" />
+    </button>
+  </div>
+
+</div>
+
       </div>
     </div>
 
