@@ -3,14 +3,13 @@
 :host {
   --font-family-base: 'Poppins', sans-serif;
 }
+
 /* --------------------------------------
    REQUIRED BREAKPOINT VARIABLES
 ---------------------------------------*/
 $mobile: 640px;
 $tablet: 768px;
 $desktop: 1024px;
-
-
 
 /* --------------------------------------
    GLOBAL SVG FIX
@@ -99,7 +98,8 @@ img[src$=".svg"] {
 .user-session__chart {
   width: 150px;
   height: 150px;
-  margin-right: 30px; /* FIX: Added space to push the legend away */
+  margin-right: 30px;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.08));
 
   @media (max-width: $mobile) {
     width: 120px;
@@ -108,45 +108,112 @@ img[src$=".svg"] {
   }
 }
 
+/* Active Circle Animation - Simple Draw */
+.active-circle {
+  animation: drawCircleActive 1.2s ease-out forwards;
+  stroke-dashoffset: 440;
+}
+
+@keyframes drawCircleActive {
+  to {
+    stroke-dashoffset: var(--active-offset, 0);
+  }
+}
+
+/* Inactive Circle Animation - Simple Draw */
+.inactive-circle {
+  animation: drawCircleInactive 1.2s ease-out forwards 0.3s;
+  stroke-dashoffset: 440;
+}
+
+@keyframes drawCircleInactive {
+  to {
+    stroke-dashoffset: var(--inactive-offset, 0);
+  }
+}
+
+/* Center Icon - Simple Fade In */
+.center-icon {
+  animation: iconFadeIn 0.6s ease-out forwards;
+  opacity: 0;
+}
+
+@keyframes iconFadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+/* Center Count - Simple Fade In */
+.center-count {
+  animation: countFadeIn 0.6s ease-out forwards 0.2s;
+  opacity: 0;
+}
+
+@keyframes countFadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
 .user-session__legend {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 12px;
+  flex: 1;
 }
 
 .legend-item {
   display: flex;
   justify-content: space-between;
-  width: 150px;
   align-items: center;
+  width: 100%;
+  min-width: 150px;
+}
+
+.legend-item-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .legend-label,
 .legend-value {
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 600;
 
   @media (max-width: $mobile) {
-    font-size: 16px;
+    font-size: 14px;
   }
+}
+
+.legend-value {
+  white-space: nowrap;
 }
 
 .legend-dot {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  margin-right: 8px;
+  flex-shrink: 0;
 }
 
 .legend-dot--green { background: #10b981; }
 .legend-dot--red { background: #ef4444; }
+.legend-dot--blue { background: #3b82f6; }
+
+.legend-item--total {
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
 
 /* --------------------------------------
-   KPI GRID - IMPROVED
+   KPI GRID - IMPROVED (NOW 2 CARDS)
 ---------------------------------------*/
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 18px;
 
   @media (max-width: $mobile) {
@@ -159,13 +226,33 @@ img[src$=".svg"] {
   padding: 24px;
   border-radius: 16px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.3s ease;
   position: relative;
   overflow: hidden;
+  border: 2px solid transparent;
 
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+  }
+
+  /* Dynamic border colors based on trend */
+  &.stat-card--trend-up {
+    border-color: rgba(5, 150, 105, 0.3);
+    
+    &:hover {
+      border-color: rgba(5, 150, 105, 0.6);
+      box-shadow: 0 6px 20px rgba(5, 150, 105, 0.15);
+    }
+  }
+
+  &.stat-card--trend-down {
+    border-color: rgba(220, 38, 38, 0.3);
+    
+    &:hover {
+      border-color: rgba(220, 38, 38, 0.6);
+      box-shadow: 0 6px 20px rgba(220, 38, 38, 0.15);
+    }
   }
 
   @media (max-width: $mobile) {
@@ -285,6 +372,16 @@ img[src$=".svg"] {
     }
   }
 }
+
+.stat-card__change--neutral {
+  background: #f3f4f6;
+  color: #6b7280;
+
+  &::before {
+    display: none;
+  }
+}
+
 
 /* --------------------------------------
    QUICK ACCESS
@@ -621,7 +718,6 @@ img[src$=".svg"] {
   }
 }
 
-
 /* Push analytics page content slightly right WITHOUT touching sidebar */
 .main {
   padding-left: 16px !important;
@@ -663,7 +759,7 @@ img[src$=".svg"] {
     margin-bottom: 12px !important;
   }
 
-  /* ---- KPI GRID → CLEAN STACKED GRID ---- */
+  /* ---- KPI GRID → CLEAN STACKED GRID (NOW 2 CARDS) ---- */
   .kpi-grid {
     display: grid !important;
     grid-template-columns: repeat(2, 1fr); /* two side-by-side */
@@ -671,16 +767,8 @@ img[src$=".svg"] {
     width: 100% !important;
   }
 
-  /* First KPI comes beside user session */
-  .kpi-grid .stat-card:nth-child(1),
-  .kpi-grid .stat-card:nth-child(2) {
+  .kpi-grid .stat-card {
     min-width: unset !important;
-    width: 100% !important;
-  }
-
-  /* Third KPI goes FULL WIDTH BELOW */
-  .kpi-grid .stat-card:nth-child(3) {
-    grid-column: span 2; /* full width */
     width: 100% !important;
   }
 
@@ -708,6 +796,7 @@ img[src$=".svg"] {
     height: 45px !important;
   }
 }
+
 /* ============================================================
    📱 GLOBAL MOBILE SHRINK (≤ 640px)
    Makes overall UI smaller & cleaner
@@ -734,6 +823,7 @@ img[src$=".svg"] {
 
   .stat-card--user-session .stat-card__title {
     font-size: 15px !important;
+    margin-bottom: 12px !important;
   }
 
   .user-session__chart {
@@ -741,13 +831,18 @@ img[src$=".svg"] {
     height: 80px !important;
   }
 
+  .user-session__legend {
+    gap: 8px !important;
+  }
+
   .legend-item {
-    width: 100px !important;
+    width: 100% !important;
+    min-width: unset !important;
   }
 
   .legend-label,
   .legend-value {
-    font-size: 13px !important;
+    font-size: 12px !important;
   }
 
   /* -------- KPI Cards -------- */

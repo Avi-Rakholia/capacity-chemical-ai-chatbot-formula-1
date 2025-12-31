@@ -1087,3 +1087,120 @@ body {
   height: 14px;
   display: block;
 }
+
+/* ===========================
+   MOBILE INPUT BAR – FINAL FIX
+=========================== */
+@media (max-width: 640px) {
+
+  .input-bar {
+    position: fixed;
+    bottom: 0.75rem;
+
+    left: calc(var(--sidebar-width) + 0.75rem);
+    right: 0.75rem;
+
+    height: 3.4rem;  
+    width: 24rem;            /* 👈 THIS makes bar bigger */
+    padding: 0 0.9rem;           /* 👈 vertical alignment */
+
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 999px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+
+    z-index: 900;
+  }
+
+  .input-bar input {
+    flex: 1;
+    font-size: 0.95rem;
+    padding: 0;                  /* 👈 IMPORTANT */
+    line-height: 1.2;
+  }
+
+  .input-bar .attach-btn,
+  .input-bar .send-btn {
+    width: 2.6rem;               /* 👈 fits perfectly now */
+    height: 2.6rem;
+    flex-shrink: 0;
+  }
+
+  .wrapper,
+  .chat-window {
+    padding-bottom: 6rem;        /* space for fixed bar */
+  }
+}
+/* ============================================
+   TABLET FIX (641px – 1024px)
+============================================ */
+@media (min-width: 641px) and (max-width: 1024px) {
+
+  /* Wrapper stays centered */
+  .wrapper {
+    padding-top: 1rem;
+    align-items: center;
+  }
+
+  /* Logo perfectly centered */
+  .logo {
+    width: 5rem;
+    height: 5rem;
+    margin-bottom: 1rem;
+  }
+  .input-bar {
+  position: fixed;
+  bottom: 1.25rem;
+
+  left: 55%;
+  transform: translateX(-50%);
+
+  height: 3.4rem;  
+    width: 20rem;            /* 👈 THIS makes bar bigger */
+    padding: 0 0.9rem;    
+
+  width: calc(100% - 5rem);
+  max-width: 48rem;
+
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+
+  padding: 0.9rem 2.1rem; /* 🔥 better vertical feel */
+  background: #ffffff;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+
+  .header-text {
+    font-size: 2rem;
+    text-align: center;
+  }
+
+  .subtext {
+    text-align: center;
+    max-width: 520px;
+  }
+
+  /* Cards behave like desktop */
+  .card-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    max-width: 720px;
+    margin: 2rem auto 3rem;
+  }
+
+  .card-row .card {
+    max-width: unset;
+  }
+}
