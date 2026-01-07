@@ -22,6 +22,7 @@ import { SupabaseAuthService } from '../../core/services/supabase-auth.service';
 import { Subscription } from 'rxjs';
 
 
+
 // Interfaces for attachment modal
 interface Quote {
   id: string;
@@ -60,7 +61,7 @@ export class ChatbotComponent implements OnInit, OnDestroy {
   private resourceService = inject(ResourceService);
   private authService = inject(SupabaseAuthService);
   private cdr = inject(ChangeDetectorRef);
-
+  conversationId = signal<string | null>(null);
   // State signals
   messages = signal<ChatMessage[]>([]);
   userMessage = signal('');
@@ -69,6 +70,11 @@ export class ChatbotComponent implements OnInit, OnDestroy {
   templates = signal<ChatTemplate[]>([]);
   currentSessionId = signal<number | null>(null);
   isStreaming = signal(false);
+  // History UI
+  showHistory = signal(false);
+  userSessions = signal<any[]>([]);
+  // Explicit mode selected via the cards: 'search' | 'create' | 'quote' | null
+  selectedMode = signal<'search' | 'create' | 'quote' | null>(null);
   
   // File attachment state
   selectedFiles = signal<File[]>([]);
@@ -180,10 +186,43 @@ export class ChatbotComponent implements OnInit, OnDestroy {
     if (!message) return;
 
     const sessionId = this.currentSessionId();
+    
+    // Create session if it doesn't exist yet (lazy creation on first message)
     if (!sessionId) {
-      console.error('No active session');
+      const userId = this.authService.getUserId();
+      if (!userId) {
+        console.error('User not authenticated');
+        return;
+      }
+      
+      // Create session first, then send message
+      this.chatService.createSession({ 
+        session_title: 'New Chat',
+        user_id: userId 
+      }).subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.currentSessionId.set(response.data.chat_session_id);
+            if (response.data.conversation_id) {
+              this.conversationId.set(response.data.conversation_id);
+            }
+            // Now send the message with the new session
+            this.sendMessageWithSession(message, response.data.chat_session_id);
+          }
+        },
+        error: (error) => {
+          console.error('Error creating session:', error);
+        }
+      });
       return;
     }
+
+    // Session exists, send message directly
+    this.sendMessageWithSession(message, sessionId);
+  }
+
+  // Helper method to send message with an existing session
+  private sendMessageWithSession(message: string, sessionId: number) {
 
     // Hide templates when first message is sent
     if (this.showTemplates()) {
@@ -321,7 +360,7 @@ export class ChatbotComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       }
     });
-  }
+  } // end sendMessageWithSession
 
   // Toggle attachment modal
   toggleAttachmentModal(): void {
@@ -477,6 +516,11 @@ shareMessage(text: string) {
     return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
   }
 
+  // ---------------------------------------
+  // FILE ATTACHMENT HANDLING
+  // ---------------------------------------
+  @ViewChild('chatInput') chatInput!: ElementRef<HTMLInputElement>;
+
   triggerFileInput() {
     this.showAttachmentModal.set(true);
     this.loadAttachmentOptions();
@@ -598,5 +642,83 @@ shareMessage(text: string) {
 
   onGenerateQuote() {
     console.log("→ Preparing Quote Generator…");
+  }
+
+  // Dropdown actions (three-dot menu)
+  handleNewChat() {
+    this.menuOpen.set(false);
+    this.createNewSession();
+  }
+
+  handleSearch() {
+    this.menuOpen.set(false);
+    // Open templates/search mode and focus input
+    this.selectedMode.set('search');
+    this.showTemplates.set(false);
+    // focus input after change detection
+    setTimeout(() => {
+      try { this.chatInput.nativeElement.focus(); } catch (e) { /* ignore */ }
+    }, 50);
+    this.cdr.markForCheck();
+  }
+
+  handleHistory() {
+    this.menuOpen.set(false);
+    // ensure attachment modal is closed when opening history
+    this.showAttachmentModal.set(false);
+    this.loadHistory();
+  }
+
+  loadHistory() {
+    const userId = this.authService.getUserId();
+    if (!userId) return;
+    this.showHistory.set(true);
+    this.chatService.getUserSessions(userId).subscribe({
+      next: (res: any) => {
+        if (res.success) {
+          console.log('Loaded user sessions count:', (res.data || []).length);
+          this.userSessions.set(res.data || []);
+          // also ensure attachment modal off
+          this.showAttachmentModal.set(false);
+          this.cdr.markForCheck();
+        }
+      },
+      error: (err) => console.error('Error loading sessions', err)
+    });
+  }
+
+  closeHistory() {
+    this.showHistory.set(false);
+  }
+
+  openSession(sessionId: number) {
+    this.chatService.getSession(sessionId).subscribe({
+      next: (res: any) => {
+        if (res.success) {
+          const data = res.data;
+          this.currentSessionId.set(data.chat_session_id || sessionId);
+          this.conversationId.set(data.conversation_id || null);
+          // Map interactions to messages
+          const interactions = (data.interactions || []).map((i: any) => ({
+            interaction_id: i.interaction_id,
+            chat_session_id: i.chat_session_id,
+            prompt: i.prompt,
+            response: i.response,
+            isUser: false
+          } as ChatMessage));
+          // Combine user prompts and AI responses into message stream
+          const msgs: ChatMessage[] = [];
+          interactions.forEach((it: any) => {
+            msgs.push({ chat_session_id: it.chat_session_id, prompt: it.prompt, isUser: true } as ChatMessage);
+            msgs.push({ chat_session_id: it.chat_session_id, response: it.response, isUser: false } as ChatMessage);
+          });
+          this.messages.set(msgs);
+          this.showTemplates.set(false);
+          this.showHistory.set(false);
+          this.cdr.markForCheck();
+        }
+      },
+      error: (err) => console.error('Error opening session', err)
+    });
   }
 }
