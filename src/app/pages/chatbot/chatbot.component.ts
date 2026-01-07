@@ -1,6 +1,6 @@
-import {
-  Component,
-  ChangeDetectionStrategy,
+import { 
+  Component, 
+  ChangeDetectionStrategy, 
   ChangeDetectorRef,
   ViewChild,
   ElementRef,
@@ -19,6 +19,7 @@ import { FormsModule } from '@angular/forms';
 import { ChatService, ChatMessage, ChatTemplate, ChatAttachment, StreamEvent } from '../../services/chat.service';
 import { ResourceService } from '../../services/resource.service';
 import { SupabaseAuthService } from '../../core/services/supabase-auth.service';
+import { MarkdownPipe } from '../../shared/pipes/markdown.pipe';
 import { Subscription } from 'rxjs';
 
 
@@ -48,7 +49,7 @@ interface Template {
 
 @Component({
   selector: 'app-chatbot',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MarkdownPipe],
   templateUrl: './chatbot.component.html',
   styleUrls: ['./chatbot.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -61,7 +62,7 @@ export class ChatbotComponent implements OnInit, OnDestroy {
   private resourceService = inject(ResourceService);
   private authService = inject(SupabaseAuthService);
   private cdr = inject(ChangeDetectorRef);
-  conversationId = signal<string | null>(null);
+
   // State signals
   messages = signal<ChatMessage[]>([]);
   userMessage = signal('');
@@ -69,6 +70,7 @@ export class ChatbotComponent implements OnInit, OnDestroy {
   showTemplates = signal(true);
   templates = signal<ChatTemplate[]>([]);
   currentSessionId = signal<number | null>(null);
+  conversationId = signal<string | null>(null); // Python AI service conversation ID
   isStreaming = signal(false);
   // History UI
   showHistory = signal(false);
@@ -98,12 +100,11 @@ export class ChatbotComponent implements OnInit, OnDestroy {
   @ViewChild('chatWindow') chatWindow!: ElementRef<HTMLDivElement>;
 
 
- ngOnInit() {
-  this.loadTemplates();
-  this.loadResources();
-  this.createNewSession();
-
-  // ✅ AUTO SCROLL LIKE CHATGPT
+  ngOnInit() {
+    this.loadTemplates();
+    this.loadResources();
+    // Don't create session automatically - wait until user sends first message
+    // ✅ AUTO SCROLL LIKE CHATGPT
   effect(() => {
     const msgs = this.messages(); // track messages signal
     if (!msgs.length) return;
@@ -115,8 +116,7 @@ export class ChatbotComponent implements OnInit, OnDestroy {
       el.scrollTop = el.scrollHeight;
     });
   });
-}
-
+ }
 
   ngOnDestroy() {
     this.streamSubscription?.unsubscribe();
@@ -165,6 +165,10 @@ export class ChatbotComponent implements OnInit, OnDestroy {
       next: (response) => {
         if (response.success) {
           this.currentSessionId.set(response.data.chat_session_id);
+          // Store conversation_id from the session if available
+          if (response.data.conversation_id) {
+            this.conversationId.set(response.data.conversation_id);
+          }
           this.messages.set([]);
           this.showTemplates.set(true);
           this.cdr.markForCheck();
@@ -279,7 +283,8 @@ export class ChatbotComponent implements OnInit, OnDestroy {
       sessionId,
       message,
       userId,
-      userMsg.attachments
+      userMsg.attachments,
+      this.selectedMode()
     ).subscribe({
       next: (event: StreamEvent) => {
         if (event.chunk) {
@@ -341,6 +346,13 @@ export class ChatbotComponent implements OnInit, OnDestroy {
             };
             return updated;
           });
+          
+          // Store conversation_id if received from server
+          if (event.conversation_id) {
+            this.conversationId.set(event.conversation_id);
+            console.log('Stored conversation_id:', event.conversation_id);
+          }
+          
           this.isStreaming.set(false);
           this.cdr.markForCheck();
         }
@@ -528,6 +540,13 @@ shareMessage(text: string) {
   }
 
   loadAttachmentOptions() {
+    // Load quotes (you'll need to implement the quotes service)
+    // this.quotesService.getQuotes().subscribe(quotes => this.availableQuotes.set(quotes));
+    
+    // Load knowledge base items (you'll need to implement this service)
+    // this.knowledgeBaseService.getItems().subscribe(items => this.availableKnowledgeBase.set(items));
+    
+    // Templates are already loaded in loadTemplates()
     const templates = this.templates();
     this.availableTemplates.set(templates.map((template: any) => ({
       template_id: template.template_id,
@@ -622,26 +641,39 @@ shareMessage(text: string) {
     this.selectedTemplates.update(templates => templates.filter((_, i) => i !== index));
   }
 
+  // Toggle resource picker
   toggleResourcePicker() {
     this.showResourcePicker.update(show => !show);
   }
 
+  // Select a resource
   selectResource(resource: any) {
     if (!this.selectedResources().find(r => r.resource_id === resource.resource_id)) {
       this.selectedResources.update(resources => [...resources, resource]);
     }
   }
 
+  // Card actions
   onSearchFormula() {
-    console.log("→ Navigating to Search Formula…");
+    // Select explicit mode and update UI
+    this.selectedMode.set('search');
+    this.showTemplates.set(false);
+    this.userMessage.set('Find formulas for ');
+    this.cdr.markForCheck();
   }
 
   onCreateFormula() {
-    console.log("→ Opening Create Formula…");
+    this.selectedMode.set('create');
+    this.showTemplates.set(false);
+    this.userMessage.set('Create a new formula for ');
+    this.cdr.markForCheck();
   }
 
   onGenerateQuote() {
-    console.log("→ Preparing Quote Generator…");
+    this.selectedMode.set('quote');
+    this.showTemplates.set(false);
+    this.userMessage.set('Generate a quote for ');
+    this.cdr.markForCheck();
   }
 
   // Dropdown actions (three-dot menu)
