@@ -1,16 +1,20 @@
 <div class="dashboard-wrapper">
 
   <div class="dashboard-grid">
-    @for (card of dashboardCards(); track card.title) {
-      
-      <div class="dashboard-card" (click)="navigateToCard(card)">
-        
+    @for (card of dashboardCards(); track card.title; let i = $index) {
+
+      <div
+        class="dashboard-card"
+        [class.center-last]="dashboardCards().length === 4 && i === 3"
+        (click)="navigateToCard(card)"
+      >
+
         <!-- ICON CIRCLE -->
         <div class="icon-wrapper">
-          <img 
-            [src]="card.iconUrl" 
-            class="icon-img" 
-            alt="{{ card.title }}" 
+          <img
+            [src]="card.iconUrl"
+            class="icon-img"
+            alt="{{ card.title }}"
           />
         </div>
 

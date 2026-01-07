@@ -157,7 +157,7 @@
     <div class="card m-3 mb-4 border-top position-relative profile-section">
       <div class="d-flex align-items-center gap-2 p-2 bg-white rounded-2 shadow-sm profile-container" (click)="toggleProfileMenu()">
         <div class="flex-shrink-0 rounded-circle overflow-hidden avatar-wrapper" style="width:44px; height:44px;">
-          <img [src]="getUserAvatar()" [alt]="currentUser()?.email || 'User'" class="img-fluid w-100 h-100" />
+          <img [src]="getUserAvatar()" [alt]="getUserDisplayName()" class="img-fluid w-100 h-100" />
         </div>
         @if (isOpen()) {
         <div class="flex-grow-1 text-truncate">
@@ -178,7 +178,7 @@
       @if (profileMenuOpen() && isOpen()) {
       <div class="position-absolute bottom-100 start-0 w-100 bg-white rounded-2 shadow p-1 profile-menu">
         <button class="btn d-flex align-items-center w-100 gap-2 rounded-2" (click)="navigateTo('/home/settings')">
-          <i class="material-icons">person</i> Profile Settings
+          <img [src]="'/assets/sidebar_settings.svg'" alt="Settings" class="img-fluid side-bar-logo" /> Settings
         </button>
         <button class="btn d-flex align-items-center w-100 gap-2 rounded-2" (click)="logout()">
           <i class="material-icons">logout</i> Sign Out
@@ -188,7 +188,7 @@
       @if (profileMenuOpen() && !isOpen()) {
       <div class="position-absolute bottom-100 start-50 translate-middle-x bg-white rounded-2 shadow p-2 profile-menu-collapsed">
         <button class="btn d-flex align-items-center justify-content-center p-2 rounded-2 mb-2" (click)="navigateTo('/home/settings')" title="Profile Settings">
-          <i class="material-icons">person</i>
+          <img [src]="'/assets/sidebar_settings.svg'" alt="Settings" class="img-fluid side-bar-logo" />
         </button>
         <button class="btn d-flex align-items-center justify-content-center p-2 rounded-2" (click)="logout()" title="Sign Out">
           <i class="material-icons">logout</i>

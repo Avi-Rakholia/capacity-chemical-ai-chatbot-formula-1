@@ -1,23 +1,27 @@
-import { 
-  Component, 
-  ChangeDetectionStrategy, 
+import {
+  Component,
+  ChangeDetectionStrategy,
   ChangeDetectorRef,
   ViewChild,
   ElementRef,
   signal,
   computed,
   inject,
+  effect,
   OnInit,
   OnDestroy
 } from '@angular/core';
+
+
 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChatService, ChatMessage, ChatTemplate, ChatAttachment, StreamEvent } from '../../services/chat.service';
 import { ResourceService } from '../../services/resource.service';
 import { SupabaseAuthService } from '../../core/services/supabase-auth.service';
-import { MarkdownPipe } from '../../shared/pipes/markdown.pipe';
 import { Subscription } from 'rxjs';
+
+
 
 // Interfaces for attachment modal
 interface Quote {
@@ -44,7 +48,7 @@ interface Template {
 
 @Component({
   selector: 'app-chatbot',
-  imports: [CommonModule, FormsModule, MarkdownPipe],
+  imports: [CommonModule, FormsModule],
   templateUrl: './chatbot.component.html',
   styleUrls: ['./chatbot.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -57,7 +61,7 @@ export class ChatbotComponent implements OnInit, OnDestroy {
   private resourceService = inject(ResourceService);
   private authService = inject(SupabaseAuthService);
   private cdr = inject(ChangeDetectorRef);
-
+  conversationId = signal<string | null>(null);
   // State signals
   messages = signal<ChatMessage[]>([]);
   userMessage = signal('');
@@ -65,7 +69,6 @@ export class ChatbotComponent implements OnInit, OnDestroy {
   showTemplates = signal(true);
   templates = signal<ChatTemplate[]>([]);
   currentSessionId = signal<number | null>(null);
-  conversationId = signal<string | null>(null); // Python AI service conversation ID
   isStreaming = signal(false);
   // History UI
   showHistory = signal(false);
@@ -91,11 +94,29 @@ export class ChatbotComponent implements OnInit, OnDestroy {
 
   private streamSubscription?: Subscription;
 
-  ngOnInit() {
-    this.loadTemplates();
-    this.loadResources();
-    // Don't create session automatically - wait until user sends first message
-  }
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('chatWindow') chatWindow!: ElementRef<HTMLDivElement>;
+
+
+ ngOnInit() {
+  this.loadTemplates();
+  this.loadResources();
+  this.createNewSession();
+
+  // ✅ AUTO SCROLL LIKE CHATGPT
+  effect(() => {
+    const msgs = this.messages(); // track messages signal
+    if (!msgs.length) return;
+
+    requestAnimationFrame(() => {
+      const el = this.chatWindow?.nativeElement;
+      if (!el) return;
+
+      el.scrollTop = el.scrollHeight;
+    });
+  });
+}
+
 
   ngOnDestroy() {
     this.streamSubscription?.unsubscribe();
@@ -144,10 +165,6 @@ export class ChatbotComponent implements OnInit, OnDestroy {
       next: (response) => {
         if (response.success) {
           this.currentSessionId.set(response.data.chat_session_id);
-          // Store conversation_id from the session if available
-          if (response.data.conversation_id) {
-            this.conversationId.set(response.data.conversation_id);
-          }
           this.messages.set([]);
           this.showTemplates.set(true);
           this.cdr.markForCheck();
@@ -239,7 +256,7 @@ export class ChatbotComponent implements OnInit, OnDestroy {
     const aiMsgIndex = this.messages().length - 1;
     const userId = this.authService.getUserId();
     let lastUpdateTime = Date.now();
-    const updateThrottleMs = 50; // Update UI at most every 50ms
+    const updateThrottleMs = 50;
 
     if (!userId) {
       console.error('User not authenticated');
@@ -262,32 +279,25 @@ export class ChatbotComponent implements OnInit, OnDestroy {
       sessionId,
       message,
       userId,
-      userMsg.attachments,
-      this.selectedMode()
+      userMsg.attachments
     ).subscribe({
       next: (event: StreamEvent) => {
         if (event.chunk) {
-          // Append chunk to AI response
           this.messages.update(msgs => {
             const updated = [...msgs];
-            // Keep the raw response in the data but display parsed version
             const currentRawResponse = (updated[aiMsgIndex].response || '') + event.chunk;
             
-            // Try to parse if we have what looks like complete JSON
             let displayResponse = currentRawResponse;
             if (currentRawResponse.includes('{') && currentRawResponse.includes('}')) {
               try {
-                // Try to find and parse JSON from the response
                 const jsonMatch = currentRawResponse.match(/\{[\s\S]*\}/);
                 if (jsonMatch) {
                   const parsed = JSON.parse(jsonMatch[0]);
                   if (parsed && typeof parsed === 'object') {
-                    // Extract the actual response/message content
                     displayResponse = parsed.response || parsed.message || parsed.answer || parsed.result || currentRawResponse;
                   }
                 }
               } catch (e) {
-                // Not complete JSON yet, keep building
                 displayResponse = currentRawResponse;
               }
             }
@@ -299,7 +309,6 @@ export class ChatbotComponent implements OnInit, OnDestroy {
             return updated;
           });
           
-          // Throttle change detection to prevent excessive re-renders
           const now = Date.now();
           if (now - lastUpdateTime >= updateThrottleMs) {
             this.cdr.markForCheck();
@@ -308,23 +317,20 @@ export class ChatbotComponent implements OnInit, OnDestroy {
         }
 
         if (event.done) {
-          // Finalize streaming
           this.messages.update(msgs => {
             const updated = [...msgs];
             let finalResponse = event.full_response || updated[aiMsgIndex].response;
             
-            // Try to parse JSON response and extract the actual message
             try {
               const jsonMatch = finalResponse.match(/\{[\s\S]*\}/);
               if (jsonMatch) {
                 const parsed = JSON.parse(jsonMatch[0]);
                 if (parsed && typeof parsed === 'object') {
-                  // Extract response from various possible JSON structures
                   finalResponse = parsed.response || parsed.message || parsed.answer || parsed.result || finalResponse;
                 }
               }
             } catch (e) {
-              // If not JSON, use the response as-is
+              // Use response as-is
             }
             
             updated[aiMsgIndex] = {
@@ -335,13 +341,6 @@ export class ChatbotComponent implements OnInit, OnDestroy {
             };
             return updated;
           });
-          
-          // Store conversation_id if received from server
-          if (event.conversation_id) {
-            this.conversationId.set(event.conversation_id);
-            console.log('Stored conversation_id:', event.conversation_id);
-          }
-          
           this.isStreaming.set(false);
           this.cdr.markForCheck();
         }
@@ -389,11 +388,9 @@ export class ChatbotComponent implements OnInit, OnDestroy {
   private loadAvailableItems(): void {
     const resources = this.availableResources();
     
-    // Categorize resources based on their category field
     const knowledgeResources = resources.filter(r => r.category === 'knowledge');
     const quoteResources = resources.filter(r => r.category === 'quotes');
     
-    // Set knowledge base items from resources with 'knowledge' category
     this.availableKnowledgeBase.set(knowledgeResources.map(resource => ({
       id: resource.resource_id.toString(),
       title: resource.file_name,
@@ -401,7 +398,6 @@ export class ChatbotComponent implements OnInit, OnDestroy {
       url: resource.file_url
     })));
     
-    // Set quotes from resources with 'quotes' category
     this.availableQuotes.set(quoteResources.map(resource => ({
       id: resource.resource_id.toString(),
       title: resource.file_name,
@@ -409,7 +405,6 @@ export class ChatbotComponent implements OnInit, OnDestroy {
       url: resource.file_url
     })));
     
-    // Load templates that are already loaded
     const templates = this.templates();
     this.availableTemplates.set(templates.map((template: any) => ({
       template_id: template.template_id,
@@ -434,14 +429,12 @@ export class ChatbotComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Handle file selection (used by both click and drag-drop)
   private handleFileSelection(files: File[]): void {
     const currentFiles = this.selectedFiles();
     const newFiles = [...currentFiles, ...files];
     this.selectedFiles.set(newFiles);
   }
 
-  // Clear all selections after sending message
   clearAllSelections(): void {
     this.selectedFiles.set([]);
     this.selectedResources.set([]);
@@ -451,11 +444,9 @@ export class ChatbotComponent implements OnInit, OnDestroy {
     this.showAttachmentModal.set(false);
   }
 
-  // Build attachments array from selected files and resources
   private buildAttachments(): ChatAttachment[] {
     const attachments: ChatAttachment[] = [];
 
-    // Add local files
     this.selectedFiles().forEach(file => {
       attachments.push({
         attachment_type: 'local_file',
@@ -465,7 +456,6 @@ export class ChatbotComponent implements OnInit, OnDestroy {
       });
     });
 
-    // Add resource references
     this.selectedResources().forEach(resource => {
       attachments.push({
         attachment_type: 'resource_reference',
@@ -475,7 +465,6 @@ export class ChatbotComponent implements OnInit, OnDestroy {
       });
     });
 
-    // Add quotes
     this.selectedQuotes().forEach(quote => {
       attachments.push({
         attachment_type: 'resource_reference',
@@ -485,7 +474,6 @@ export class ChatbotComponent implements OnInit, OnDestroy {
       });
     });
 
-    // Add knowledge base items
     this.selectedKnowledgeBase().forEach(kb => {
       attachments.push({
         attachment_type: 'resource_reference',
@@ -495,7 +483,6 @@ export class ChatbotComponent implements OnInit, OnDestroy {
       });
     });
 
-    // Add templates
     this.selectedTemplates().forEach(template => {
       attachments.push({
         attachment_type: 'resource_reference',
@@ -507,6 +494,19 @@ export class ChatbotComponent implements OnInit, OnDestroy {
 
     return attachments;
   }
+  copyMessage(text: string) {
+  navigator.clipboard.writeText(text);
+}
+
+shareMessage(text: string) {
+  if (navigator.share) {
+    navigator.share({ text });
+  } else {
+    navigator.clipboard.writeText(text);
+    alert('Message copied for sharing');
+  }
+}
+
 
   formatFileSize(bytes: number): string {
     if (bytes === 0) return '0 Bytes';
@@ -519,25 +519,15 @@ export class ChatbotComponent implements OnInit, OnDestroy {
   // ---------------------------------------
   // FILE ATTACHMENT HANDLING
   // ---------------------------------------
-  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;   // ✅ Correct strong typing
   @ViewChild('chatInput') chatInput!: ElementRef<HTMLInputElement>;
 
   triggerFileInput() {
-    // Open attachment modal instead of direct file input
     this.showAttachmentModal.set(true);
     this.loadAttachmentOptions();
     this.cdr.markForCheck();
   }
 
-  // Load data for attachment modal
   loadAttachmentOptions() {
-    // Load quotes (you'll need to implement the quotes service)
-    // this.quotesService.getQuotes().subscribe(quotes => this.availableQuotes.set(quotes));
-    
-    // Load knowledge base items (you'll need to implement this service)
-    // this.knowledgeBaseService.getItems().subscribe(items => this.availableKnowledgeBase.set(items));
-    
-    // Templates are already loaded in loadTemplates()
     const templates = this.templates();
     this.availableTemplates.set(templates.map((template: any) => ({
       template_id: template.template_id,
@@ -546,12 +536,11 @@ export class ChatbotComponent implements OnInit, OnDestroy {
     })));
   }
 
-  // Direct file input trigger (for when user selects "Files" in modal)
   triggerDirectFileInput() {
     if (this.fileInput) {
       this.fileInput.nativeElement.click();
     } else {
-      console.error("❌ fileInput ViewChild not found!");
+      console.error("fileInput ViewChild not found!");
     }
   }
   
@@ -559,42 +548,35 @@ export class ChatbotComponent implements OnInit, OnDestroy {
     const menuButton = document.querySelector('.menu-btn');
     const dropdown = document.querySelector('.dropdown');
 
-    // If click is inside menu button or dropdown → do nothing
     if (menuButton?.contains(event.target as Node) ||
         dropdown?.contains(event.target as Node)) {
       return;
     }
 
-    // Otherwise → close menu
     if (this.menuOpen()) {
       this.menuOpen.set(false);
       this.cdr.markForCheck();
     }
   }
+  
   onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     const files = input.files;
 
     if (files && files.length > 0) {
       this.handleFileSelection(Array.from(files));
-      console.log("Selected files:", this.selectedFiles());
-      
-      // Reset input to allow selecting the same file again
       input.value = '';
     }
   }
 
-  // Remove file from selection
   removeFile(file: File) {
     this.selectedFiles.update(files => files.filter(f => f !== file));
   }
 
-  // Remove resource from selection
-  removeResource(index: number) {
-    this.selectedResources.update(resources => resources.filter((_, i) => i !== index));
+  removeResource(resource: any) {
+    this.selectedResources.update(resources => resources.filter(r => r !== resource));
   }
 
-  // Add quote attachment
   toggleQuoteSelection(quote: any) {
     const currentQuotes = this.selectedQuotes();
     const isSelected = currentQuotes.find(q => q.id === quote.id);
@@ -606,7 +588,6 @@ export class ChatbotComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Add knowledge base attachment
   toggleKnowledgeBaseSelection(item: any) {
     const currentItems = this.selectedKnowledgeBase();
     const isSelected = currentItems.find(kb => kb.id === item.id);
@@ -618,7 +599,6 @@ export class ChatbotComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Add template attachment
   toggleTemplateSelection(template: any) {
     const currentTemplates = this.selectedTemplates();
     const isSelected = currentTemplates.find(t => t.template_id === template.template_id);
@@ -630,7 +610,6 @@ export class ChatbotComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Remove different types of attachments
   removeQuote(index: number) {
     this.selectedQuotes.update(quotes => quotes.filter((_, i) => i !== index));
   }
@@ -643,39 +622,26 @@ export class ChatbotComponent implements OnInit, OnDestroy {
     this.selectedTemplates.update(templates => templates.filter((_, i) => i !== index));
   }
 
-  // Toggle resource picker
   toggleResourcePicker() {
     this.showResourcePicker.update(show => !show);
   }
 
-  // Select a resource
   selectResource(resource: any) {
     if (!this.selectedResources().find(r => r.resource_id === resource.resource_id)) {
       this.selectedResources.update(resources => [...resources, resource]);
     }
   }
 
-  // Card actions
   onSearchFormula() {
-    // Select explicit mode and update UI
-    this.selectedMode.set('search');
-    this.showTemplates.set(false);
-    this.userMessage.set('Find formulas for ');
-    this.cdr.markForCheck();
+    console.log("→ Navigating to Search Formula…");
   }
 
   onCreateFormula() {
-    this.selectedMode.set('create');
-    this.showTemplates.set(false);
-    this.userMessage.set('Create a new formula for ');
-    this.cdr.markForCheck();
+    console.log("→ Opening Create Formula…");
   }
 
   onGenerateQuote() {
-    this.selectedMode.set('quote');
-    this.showTemplates.set(false);
-    this.userMessage.set('Generate a quote for ');
-    this.cdr.markForCheck();
+    console.log("→ Preparing Quote Generator…");
   }
 
   // Dropdown actions (three-dot menu)
