@@ -118,25 +118,10 @@ export class AnalyticsComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /* ---------------- YEARLY MAIN CHART ---------------- */
 
-  selectedYear = '2022';
-  years = ['2019', '2020', '2021', '2022', '2023', '2024'];
-
-  datasetsByYear: Record<string, ChartPoint[]> = {
-    '2022': [
-      { month: 'Jan', value: 18 },
-      { month: 'Feb', value: 22 },
-      { month: 'Mar', value: 26 },
-      { month: 'Apr', value: 30 },
-      { month: 'May', value: 34 },
-      { month: 'Jun', value: 38 },
-      { month: 'Jul', value: 37 },
-      { month: 'Aug', value: 35 },
-      { month: 'Sep', value: 42 },
-      { month: 'Oct', value: 45 },
-      { month: 'Nov', value: 48 },
-      { month: 'Dec', value: 52 }
-    ]
-  };
+  selectedYear = new Date().getFullYear().toString();
+  years: string[] = [];
+  
+  datasetsByYear: Record<string, ChartPoint[]> = {};
 
   /* ---------------- QUICK ACCESS ---------------- */
 
@@ -154,6 +139,7 @@ export class AnalyticsComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit(): void {
     this.loadUsers();
     this.loadKpis();
+    this.loadYearlyData();
   }
 
   ngAfterViewInit(): void {
@@ -210,28 +196,6 @@ export class AnalyticsComponent implements OnInit, AfterViewInit, OnDestroy {
   private previousTotalMessages = 0;
   private previousAvgMessages = 0;
 
-  private generateTrendData(
-    start: number,
-    end: number,
-    points: number
-  ): number[] {
-    if (points <= 1) return [end];
-
-    const data: number[] = [];
-    const step = (end - start) / (points - 1);
-
-    for (let i = 0; i < points; i++) {
-      const value = start + step * i;
-
-      // add slight randomness for natural-looking trends
-      const noise = value * 0.03 * (Math.random() - 0.5);
-
-      data.push(Math.max(0, Math.round(value + noise)));
-    }
-
-    return data;
-  }
-
   loadKpis(): void {
     this.analyticsApiService.getChatSessionStats().subscribe({
       next: (response) => {
@@ -242,58 +206,135 @@ export class AnalyticsComponent implements OnInit, AfterViewInit, OnDestroy {
         const totalMessages = Number(messages.total_messages);
         const avgMessages = Number(messages.avg_messages_per_session);
 
-        /* -------- SIMULATE REALISTIC TRENDS FOR DEMO -------- */
-        // If no previous data, simulate positive growth
-        if (this.previousTotalMessages === 0) {
-          this.previousTotalMessages = Math.floor(totalMessages * 0.85);
-          this.previousAvgMessages = Math.floor(avgMessages * 0.92);
+        this.totalInteractions.value = totalMessages;
+        this.avgMessagesPerChat.value = Math.round(avgMessages);
+
+        this.loadTimelineData();
+      },
+      error: err => console.error('Error loading KPIs:', err)
+    });
+  }
+
+  loadTimelineData(): void {
+    this.analyticsApiService.getChatTimeline('30days', 'day').subscribe({
+      next: (response) => {
+        if (!response.success || !response.data) return;
+
+        const timelineData = response.data;
+
+        if (timelineData.length === 0) {
+          this.kpiTrendData.interactions = Array(12).fill(this.totalInteractions.value);
+          this.kpiTrendData.messages = Array(12).fill(this.avgMessagesPerChat.value);
+          this.totalInteractions.trend = 'neutral';
+          this.avgMessagesPerChat.trend = 'neutral';
+          setTimeout(() => this.buildMiniCharts());
+          return;
         }
 
-        /* -------- TOTAL INTERACTIONS -------- */
-        const totalTrend = this.calculateTrend(
-          totalMessages,
-          this.previousTotalMessages
-        );
+        const sessionCounts: number[] = [];
+        const avgMessagesData: number[] = [];
 
-        this.totalInteractions = {
-          value: totalMessages,
-          change: totalTrend.change,
-          trend: totalTrend.trend
-        };
+        let cumulativeSessions = 0;
+        const recentData = timelineData.slice(-12);
 
-        /* -------- AVG MESSAGES PER CHAT -------- */
-        const avgTrend = this.calculateTrend(
-          avgMessages,
-          this.previousAvgMessages
-        );
+        for (const point of recentData) {
+          cumulativeSessions += point.session_count || 0;
+          sessionCounts.push(cumulativeSessions);
+        }
 
-        this.avgMessagesPerChat = {
-          value: Math.round(avgMessages),
-          change: avgTrend.change,
-          trend: avgTrend.trend
-        };
+        for (const point of recentData) {
+          avgMessagesData.push(point.session_count || 0);
+        }
 
-        /* -------- GENERATE REALISTIC TREND DATA (12 points) -------- */
-        this.kpiTrendData.interactions = this.generateTrendData(
-          this.previousTotalMessages,
-          totalMessages,
-          12
-        );
+        while (sessionCounts.length < 12) {
+          sessionCounts.unshift(sessionCounts[0] || 0);
+        }
+        while (avgMessagesData.length < 12) {
+          avgMessagesData.unshift(avgMessagesData[0] || 0);
+        }
 
-        this.kpiTrendData.messages = this.generateTrendData(
-          this.previousAvgMessages,
-          avgMessages,
-          12
-        );
+        if (sessionCounts.length >= 2) {
+          const firstSession = sessionCounts[0];
+          const lastSession = sessionCounts[sessionCounts.length - 1];
+          const sessionTrend = this.calculateTrend(lastSession, firstSession);
+          
+          this.totalInteractions.change = sessionTrend.change;
+          this.totalInteractions.trend = sessionTrend.trend;
+        }
 
-        /* -------- UPDATE PREVIOUS VALUES -------- */
-        this.previousTotalMessages = totalMessages;
-        this.previousAvgMessages = avgMessages;
+        if (avgMessagesData.length >= 2) {
+          const firstAvg = avgMessagesData[0];
+          const lastAvg = avgMessagesData[avgMessagesData.length - 1];
+          const avgTrend = this.calculateTrend(lastAvg, firstAvg);
+          
+          this.avgMessagesPerChat.change = avgTrend.change;
+          this.avgMessagesPerChat.trend = avgTrend.trend;
+        }
+
+        this.kpiTrendData.interactions = sessionCounts;
+        this.kpiTrendData.messages = avgMessagesData;
 
         setTimeout(() => this.buildMiniCharts());
       },
-      error: err => console.error(err)
+      error: err => {
+        console.error('Error loading timeline data:', err);
+        this.kpiTrendData.interactions = Array(12).fill(this.totalInteractions.value);
+        this.kpiTrendData.messages = Array(12).fill(this.avgMessagesPerChat.value);
+        setTimeout(() => this.buildMiniCharts());
+      }
     });
+  }
+
+  loadYearlyData(): void {
+    const currentYear = new Date().getFullYear();
+    const yearsToLoad = [currentYear - 2, currentYear - 1, currentYear];
+    this.years = yearsToLoad.map(y => y.toString());
+
+    yearsToLoad.forEach(year => {
+      this.analyticsApiService.getChatTimeline('365days', 'month').subscribe({
+        next: (response) => {
+          if (!response.success || !response.data) {
+            this.datasetsByYear[year.toString()] = this.getEmptyMonthlyData();
+            if (year === currentYear) {
+              setTimeout(() => this.buildChart());
+            }
+            return;
+          }
+
+          const monthlyData: ChartPoint[] = this.getEmptyMonthlyData();
+          const data = response.data;
+
+          data.forEach((point: any) => {
+            const [pointYear, pointMonth] = point.period.split('-');
+            
+            if (parseInt(pointYear) === year) {
+              const monthIndex = parseInt(pointMonth) - 1;
+              if (monthIndex >= 0 && monthIndex < 12) {
+                monthlyData[monthIndex].value = point.session_count || 0;
+              }
+            }
+          });
+
+          this.datasetsByYear[year.toString()] = monthlyData;
+
+          if (year === currentYear) {
+            setTimeout(() => this.buildChart());
+          }
+        },
+        error: err => {
+          console.error(`Error loading data for year ${year}:`, err);
+          this.datasetsByYear[year.toString()] = this.getEmptyMonthlyData();
+          if (year === currentYear) {
+            setTimeout(() => this.buildChart());
+          }
+        }
+      });
+    });
+  }
+
+  private getEmptyMonthlyData(): ChartPoint[] {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return months.map(month => ({ month, value: 0 }));
   }
 
   /* ---------------- HELPERS ---------------- */
@@ -360,6 +401,12 @@ export class AnalyticsComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.chart) this.chart.destroy();
 
     const data = this.datasetsByYear[this.selectedYear];
+    
+    if (!data || data.length === 0) {
+      console.warn(`No data available for year ${this.selectedYear}`);
+      return;
+    }
+
     const labels = data.map(d => d.month);
     const values = data.map(d => d.value);
 
