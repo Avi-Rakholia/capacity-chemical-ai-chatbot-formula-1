@@ -11,7 +11,7 @@
     </button>
 
     <div class="dropdown" *ngIf="menuOpen()">
-      <div class="dropdown-item">
+      <div class="dropdown-item" (click)="handleNewChat()">
         <span class="item-icon">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <path d="M2 8h12M8 2v12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -20,7 +20,7 @@
         New Chat
       </div>
 
-      <div class="dropdown-item">
+      <div class="dropdown-item" (click)="handleSearch()">
         <span class="item-icon">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.5" fill="none"/>
@@ -30,7 +30,7 @@
         Search
       </div>
 
-      <div class="dropdown-item">
+      <div class="dropdown-item" (click)="handleHistory()">
         <span class="item-icon">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5" fill="none"/>
@@ -129,14 +129,14 @@
 
   <!-- AI bubble -->
   <div class="message-content">
-    <div class="message-text markdown-content" [innerHTML]="msg.response">
+    <div #messageContent class="message-text markdown-content" [innerHTML]="msg.response | markdown">
       <span *ngIf="msg.isStreaming" class="streaming-cursor">▊</span>
     </div>
   </div>
 
   <!-- AI actions (outside bubble) -->
   <div class="ai-actions">
-    <button type="button" title="Copy" (click)="copyMessage(msg.response)">
+    <button type="button" title="Copy" (click)="copyMessageWithFormatting(messageContent)">
       <img src="/assets/copy.svg" alt="Copy" />
     </button>
 
@@ -207,6 +207,7 @@
         (input)="userMessage.set($any($event.target).value)"
         (keyup.enter)="sendMessage()"
         [disabled]="isStreaming()"
+        #chatInput
       />
 
       <!-- Attach Document Button -->
@@ -391,6 +392,8 @@
         </div>
       </div>
     </div>
+
+
     
     <div class="modal-footer">
       <button type="button" class="cancel-btn" (click)="closeAttachmentModal()">Cancel</button>
@@ -400,7 +403,27 @@
     </div>
   </div>
 </div>
-
+        <!-- History Modal -->
+        <div *ngIf="showHistory()" class="modal-overlay" (click)="closeHistory()">
+          <div class="modal-content" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+              <h3>Chat History</h3>
+              <button type="button" class="close-btn" (click)="closeHistory()">×</button>
+            </div>
+            <div class="modal-body">
+              <div *ngIf="userSessions().length === 0">No previous sessions found.</div>
+              <div class="session-list">
+                <div *ngFor="let s of userSessions()" class="session-row" (click)="openSession(s.chat_session_id)">
+                  <div class="session-title">{{ s.session_title || ('Session ' + s.chat_session_id) }}</div>
+                  <div class="session-meta">{{ s.start_time | date:'short' }} • {{ s.status }}</div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="cancel-btn" (click)="closeHistory()">Close</button>
+            </div>
+          </div>
+        </div>
 <!-- Hidden File Input -->
 <input 
   type="file" 

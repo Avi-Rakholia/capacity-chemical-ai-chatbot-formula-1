@@ -1,6 +1,6 @@
-import {
-  Component,
-  ChangeDetectionStrategy,
+import { 
+  Component, 
+  ChangeDetectionStrategy, 
   ChangeDetectorRef,
   ViewChild,
   ElementRef,
@@ -19,7 +19,9 @@ import { FormsModule } from '@angular/forms';
 import { ChatService, ChatMessage, ChatTemplate, ChatAttachment, StreamEvent } from '../../services/chat.service';
 import { ResourceService } from '../../services/resource.service';
 import { SupabaseAuthService } from '../../core/services/supabase-auth.service';
+import { MarkdownPipe } from '../../shared/pipes/markdown.pipe';
 import { Subscription } from 'rxjs';
+
 
 
 // Interfaces for attachment modal
@@ -47,7 +49,7 @@ interface Template {
 
 @Component({
   selector: 'app-chatbot',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MarkdownPipe],
   templateUrl: './chatbot.component.html',
   styleUrls: ['./chatbot.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -68,7 +70,13 @@ export class ChatbotComponent implements OnInit, OnDestroy {
   showTemplates = signal(true);
   templates = signal<ChatTemplate[]>([]);
   currentSessionId = signal<number | null>(null);
+  conversationId = signal<string | null>(null); // Python AI service conversation ID
   isStreaming = signal(false);
+  // History UI
+  showHistory = signal(false);
+  userSessions = signal<any[]>([]);
+  // Explicit mode selected via the cards: 'search' | 'create' | 'quote' | null
+  selectedMode = signal<'search' | 'create' | 'quote' | null>(null);
   
   // File attachment state
   selectedFiles = signal<File[]>([]);
@@ -92,12 +100,11 @@ export class ChatbotComponent implements OnInit, OnDestroy {
   @ViewChild('chatWindow') chatWindow!: ElementRef<HTMLDivElement>;
 
 
- ngOnInit() {
-  this.loadTemplates();
-  this.loadResources();
-  this.createNewSession();
-
-  // ✅ AUTO SCROLL LIKE CHATGPT
+  ngOnInit() {
+    this.loadTemplates();
+    this.loadResources();
+    // Don't create session automatically - wait until user sends first message
+    // ✅ AUTO SCROLL LIKE CHATGPT
   effect(() => {
     const msgs = this.messages(); // track messages signal
     if (!msgs.length) return;
@@ -109,8 +116,7 @@ export class ChatbotComponent implements OnInit, OnDestroy {
       el.scrollTop = el.scrollHeight;
     });
   });
-}
-
+ }
 
   ngOnDestroy() {
     this.streamSubscription?.unsubscribe();
@@ -159,6 +165,10 @@ export class ChatbotComponent implements OnInit, OnDestroy {
       next: (response) => {
         if (response.success) {
           this.currentSessionId.set(response.data.chat_session_id);
+          // Store conversation_id from the session if available
+          if (response.data.conversation_id) {
+            this.conversationId.set(response.data.conversation_id);
+          }
           this.messages.set([]);
           this.showTemplates.set(true);
           this.cdr.markForCheck();
@@ -180,10 +190,43 @@ export class ChatbotComponent implements OnInit, OnDestroy {
     if (!message) return;
 
     const sessionId = this.currentSessionId();
+    
+    // Create session if it doesn't exist yet (lazy creation on first message)
     if (!sessionId) {
-      console.error('No active session');
+      const userId = this.authService.getUserId();
+      if (!userId) {
+        console.error('User not authenticated');
+        return;
+      }
+      
+      // Create session first, then send message
+      this.chatService.createSession({ 
+        session_title: 'New Chat',
+        user_id: userId 
+      }).subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.currentSessionId.set(response.data.chat_session_id);
+            if (response.data.conversation_id) {
+              this.conversationId.set(response.data.conversation_id);
+            }
+            // Now send the message with the new session
+            this.sendMessageWithSession(message, response.data.chat_session_id);
+          }
+        },
+        error: (error) => {
+          console.error('Error creating session:', error);
+        }
+      });
       return;
     }
+
+    // Session exists, send message directly
+    this.sendMessageWithSession(message, sessionId);
+  }
+
+  // Helper method to send message with an existing session
+  private sendMessageWithSession(message: string, sessionId: number) {
 
     // Hide templates when first message is sent
     if (this.showTemplates()) {
@@ -240,7 +283,8 @@ export class ChatbotComponent implements OnInit, OnDestroy {
       sessionId,
       message,
       userId,
-      userMsg.attachments
+      userMsg.attachments,
+      this.selectedMode()
     ).subscribe({
       next: (event: StreamEvent) => {
         if (event.chunk) {
@@ -302,6 +346,13 @@ export class ChatbotComponent implements OnInit, OnDestroy {
             };
             return updated;
           });
+          
+          // Store conversation_id if received from server
+          if (event.conversation_id) {
+            this.conversationId.set(event.conversation_id);
+            console.log('Stored conversation_id:', event.conversation_id);
+          }
+          
           this.isStreaming.set(false);
           this.cdr.markForCheck();
         }
@@ -321,7 +372,7 @@ export class ChatbotComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       }
     });
-  }
+  } // end sendMessageWithSession
 
   // Toggle attachment modal
   toggleAttachmentModal(): void {
@@ -455,18 +506,62 @@ export class ChatbotComponent implements OnInit, OnDestroy {
 
     return attachments;
   }
-  copyMessage(text: string) {
-  navigator.clipboard.writeText(text);
-}
-
-shareMessage(text: string) {
-  if (navigator.share) {
-    navigator.share({ text });
-  } else {
-    navigator.clipboard.writeText(text);
-    alert('Message copied for sharing');
+  async copyMessage(text: string) {
+    try {
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = text;
+      
+      const blob = new Blob([text], { type: 'text/html' });
+      const clipboardItem = new ClipboardItem({
+        'text/html': blob,
+        'text/plain': new Blob([tempDiv.textContent || text], { type: 'text/plain' })
+      });
+      
+      await navigator.clipboard.write([clipboardItem]);
+      console.log('Message copied with formatting');
+    } catch (err) {
+      console.error('Rich copy failed, using plain text:', err);
+      navigator.clipboard.writeText(text);
+    }
   }
-}
+
+  async copyMessageWithFormatting(element: HTMLElement) {
+    try {
+      const clone = element.cloneNode(true) as HTMLElement;
+      
+      const cursor = clone.querySelector('.streaming-cursor');
+      if (cursor) {
+        cursor.remove();
+      }
+      
+      const htmlContent = clone.innerHTML;
+      const textContent = clone.textContent || '';
+      
+      const htmlBlob = new Blob([htmlContent], { type: 'text/html' });
+      const textBlob = new Blob([textContent], { type: 'text/plain' });
+      
+      const clipboardItem = new ClipboardItem({
+        'text/html': htmlBlob,
+        'text/plain': textBlob
+      });
+      
+      await navigator.clipboard.write([clipboardItem]);
+      console.log('Message copied with formatting');
+    } catch (err) {
+      console.error('Rich copy failed, using plain text:', err);
+      const textContent = element.textContent || '';
+      navigator.clipboard.writeText(textContent);
+    }
+  }
+
+  shareMessage(text: string) {
+    if (navigator.share) {
+      navigator.share({ text });
+    } else {
+      navigator.clipboard.writeText(text);
+      alert('Message copied for sharing');
+    }
+  }
 
 
   formatFileSize(bytes: number): string {
@@ -477,6 +572,11 @@ shareMessage(text: string) {
     return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
   }
 
+  // ---------------------------------------
+  // FILE ATTACHMENT HANDLING
+  // ---------------------------------------
+  @ViewChild('chatInput') chatInput!: ElementRef<HTMLInputElement>;
+
   triggerFileInput() {
     this.showAttachmentModal.set(true);
     this.loadAttachmentOptions();
@@ -484,6 +584,13 @@ shareMessage(text: string) {
   }
 
   loadAttachmentOptions() {
+    // Load quotes (you'll need to implement the quotes service)
+    // this.quotesService.getQuotes().subscribe(quotes => this.availableQuotes.set(quotes));
+    
+    // Load knowledge base items (you'll need to implement this service)
+    // this.knowledgeBaseService.getItems().subscribe(items => this.availableKnowledgeBase.set(items));
+    
+    // Templates are already loaded in loadTemplates()
     const templates = this.templates();
     this.availableTemplates.set(templates.map((template: any) => ({
       template_id: template.template_id,
@@ -578,25 +685,116 @@ shareMessage(text: string) {
     this.selectedTemplates.update(templates => templates.filter((_, i) => i !== index));
   }
 
+  // Toggle resource picker
   toggleResourcePicker() {
     this.showResourcePicker.update(show => !show);
   }
 
+  // Select a resource
   selectResource(resource: any) {
     if (!this.selectedResources().find(r => r.resource_id === resource.resource_id)) {
       this.selectedResources.update(resources => [...resources, resource]);
     }
   }
 
+  // Card actions
   onSearchFormula() {
-    console.log("→ Navigating to Search Formula…");
+    // Select explicit mode and update UI
+    this.selectedMode.set('search');
+    this.showTemplates.set(false);
+    this.userMessage.set('Find formulas for ');
+    this.cdr.markForCheck();
   }
 
   onCreateFormula() {
-    console.log("→ Opening Create Formula…");
+    this.selectedMode.set('create');
+    this.showTemplates.set(false);
+    this.userMessage.set('Create a new formula for ');
+    this.cdr.markForCheck();
   }
 
   onGenerateQuote() {
-    console.log("→ Preparing Quote Generator…");
+    this.selectedMode.set('quote');
+    this.showTemplates.set(false);
+    this.userMessage.set('Generate a quote for ');
+    this.cdr.markForCheck();
+  }
+
+  // Dropdown actions (three-dot menu)
+  handleNewChat() {
+    this.menuOpen.set(false);
+    this.createNewSession();
+  }
+
+  handleSearch() {
+    this.menuOpen.set(false);
+    // Open templates/search mode and focus input
+    this.selectedMode.set('search');
+    this.showTemplates.set(false);
+    // focus input after change detection
+    setTimeout(() => {
+      try { this.chatInput.nativeElement.focus(); } catch (e) { /* ignore */ }
+    }, 50);
+    this.cdr.markForCheck();
+  }
+
+  handleHistory() {
+    this.menuOpen.set(false);
+    // ensure attachment modal is closed when opening history
+    this.showAttachmentModal.set(false);
+    this.loadHistory();
+  }
+
+  loadHistory() {
+    const userId = this.authService.getUserId();
+    if (!userId) return;
+    this.showHistory.set(true);
+    this.chatService.getUserSessions(userId).subscribe({
+      next: (res: any) => {
+        if (res.success) {
+          console.log('Loaded user sessions count:', (res.data || []).length);
+          this.userSessions.set(res.data || []);
+          // also ensure attachment modal off
+          this.showAttachmentModal.set(false);
+          this.cdr.markForCheck();
+        }
+      },
+      error: (err) => console.error('Error loading sessions', err)
+    });
+  }
+
+  closeHistory() {
+    this.showHistory.set(false);
+  }
+
+  openSession(sessionId: number) {
+    this.chatService.getSession(sessionId).subscribe({
+      next: (res: any) => {
+        if (res.success) {
+          const data = res.data;
+          this.currentSessionId.set(data.chat_session_id || sessionId);
+          this.conversationId.set(data.conversation_id || null);
+          // Map interactions to messages
+          const interactions = (data.interactions || []).map((i: any) => ({
+            interaction_id: i.interaction_id,
+            chat_session_id: i.chat_session_id,
+            prompt: i.prompt,
+            response: i.response,
+            isUser: false
+          } as ChatMessage));
+          // Combine user prompts and AI responses into message stream
+          const msgs: ChatMessage[] = [];
+          interactions.forEach((it: any) => {
+            msgs.push({ chat_session_id: it.chat_session_id, prompt: it.prompt, isUser: true } as ChatMessage);
+            msgs.push({ chat_session_id: it.chat_session_id, response: it.response, isUser: false } as ChatMessage);
+          });
+          this.messages.set(msgs);
+          this.showTemplates.set(false);
+          this.showHistory.set(false);
+          this.cdr.markForCheck();
+        }
+      },
+      error: (err) => console.error('Error opening session', err)
+    });
   }
 }
