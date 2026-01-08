@@ -129,14 +129,14 @@
 
   <!-- AI bubble -->
   <div class="message-content">
-    <div class="message-text markdown-content" [innerHTML]="msg.response | markdown">
+    <div #messageContent class="message-text markdown-content" [innerHTML]="msg.response | markdown">
       <span *ngIf="msg.isStreaming" class="streaming-cursor">▊</span>
     </div>
   </div>
 
   <!-- AI actions (outside bubble) -->
   <div class="ai-actions">
-    <button type="button" title="Copy" (click)="copyMessage(msg.response)">
+    <button type="button" title="Copy" (click)="copyMessageWithFormatting(messageContent)">
       <img src="/assets/copy.svg" alt="Copy" />
     </button>
 

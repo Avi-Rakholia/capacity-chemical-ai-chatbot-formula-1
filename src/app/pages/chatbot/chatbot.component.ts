@@ -506,18 +506,62 @@ export class ChatbotComponent implements OnInit, OnDestroy {
 
     return attachments;
   }
-  copyMessage(text: string) {
-  navigator.clipboard.writeText(text);
-}
-
-shareMessage(text: string) {
-  if (navigator.share) {
-    navigator.share({ text });
-  } else {
-    navigator.clipboard.writeText(text);
-    alert('Message copied for sharing');
+  async copyMessage(text: string) {
+    try {
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = text;
+      
+      const blob = new Blob([text], { type: 'text/html' });
+      const clipboardItem = new ClipboardItem({
+        'text/html': blob,
+        'text/plain': new Blob([tempDiv.textContent || text], { type: 'text/plain' })
+      });
+      
+      await navigator.clipboard.write([clipboardItem]);
+      console.log('Message copied with formatting');
+    } catch (err) {
+      console.error('Rich copy failed, using plain text:', err);
+      navigator.clipboard.writeText(text);
+    }
   }
-}
+
+  async copyMessageWithFormatting(element: HTMLElement) {
+    try {
+      const clone = element.cloneNode(true) as HTMLElement;
+      
+      const cursor = clone.querySelector('.streaming-cursor');
+      if (cursor) {
+        cursor.remove();
+      }
+      
+      const htmlContent = clone.innerHTML;
+      const textContent = clone.textContent || '';
+      
+      const htmlBlob = new Blob([htmlContent], { type: 'text/html' });
+      const textBlob = new Blob([textContent], { type: 'text/plain' });
+      
+      const clipboardItem = new ClipboardItem({
+        'text/html': htmlBlob,
+        'text/plain': textBlob
+      });
+      
+      await navigator.clipboard.write([clipboardItem]);
+      console.log('Message copied with formatting');
+    } catch (err) {
+      console.error('Rich copy failed, using plain text:', err);
+      const textContent = element.textContent || '';
+      navigator.clipboard.writeText(textContent);
+    }
+  }
+
+  shareMessage(text: string) {
+    if (navigator.share) {
+      navigator.share({ text });
+    } else {
+      navigator.clipboard.writeText(text);
+      alert('Message copied for sharing');
+    }
+  }
 
 
   formatFileSize(bytes: number): string {
