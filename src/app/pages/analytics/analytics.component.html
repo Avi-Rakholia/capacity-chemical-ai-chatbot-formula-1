@@ -2,60 +2,154 @@
 
   <!-- MAIN CONTENT -->
   <main class="main">
-
-    <!-- PAGE HEADER -->
-    <header class="main__header">
-      
-    </header>
-
     <!-- =======================
          STATS ROW
     ======================== -->
     <div class="stats-row">
 
-      <!-- USER SESSION CARD -->
+      <!-- MERGED USER SESSION & TOTAL USERS CARD -->
       <div class="stat-card stat-card--user-session">
-        <h3 class="stat-card__title">User Session</h3>
+        <h3 class="stat-card__title">User Overview</h3>
 
         <div class="user-session">
 
           <!-- DONUT CHART -->
           <svg class="user-session__chart" viewBox="0 0 160 160">
 
-            <!-- Inactive Track -->
+            <!-- Background Circle (Light Gray) -->
             <circle 
               cx="80" cy="80" r="70"
               fill="none"
-              [attr.stroke]="sessionData.inactive.color"
-              stroke-width="12"
+              stroke="#f3f4f6"
+              stroke-width="14"
             ></circle>
 
-            <!-- Active Track -->
+            <!-- Active Track with Gradient & Shadow (Green) -->
             <circle 
               cx="80" cy="80" r="70"
               fill="none"
-              stroke="url(#dynamicGradient)"
-              stroke-width="12"
+              stroke="url(#activeGradient)"
+              stroke-width="14"
               [attr.stroke-dasharray]="getCircumference()"
-              [attr.stroke-dashoffset]="getActiveOffset()"
+              [attr.stroke-dashoffset]="getCircumference() - (sessionData().active.percentage / 100) * getCircumference()"
               transform="rotate(-90 80 80)"
               stroke-linecap="round"
+              class="active-circle"
+              filter="url(#glow)"
             ></circle>
 
-            <!-- Center Icon -->
-            <image 
-              href="/assets/group.svg"
-              x="50"
-              y="50"
-              height="60"
-              width="60"
-            />
+            <!-- Inactive Track (Red) - starts where active ends -->
+            <circle 
+              cx="80" cy="80" r="70"
+              fill="none"
+              stroke="url(#inactiveGradient)"
+              stroke-width="14"
+              [attr.stroke-dasharray]="(sessionData().inactive.percentage / 100) * getCircumference() + ' ' + getCircumference()"
+              [attr.transform]="'rotate(' + (360 * sessionData().active.percentage / 100 - 90) + ' 80 80)'"
+              stroke-linecap="round"
+              class="inactive-circle"
+            ></circle>
+
+            <!-- Animated Pulse Ring -->
+            <circle 
+              cx="80" cy="80" r="70"
+              fill="none"
+              stroke="url(#activeGradient)"
+              stroke-width="2"
+              opacity="0"
+              class="pulse-ring"
+            ></circle>
+
+            <!-- Inner Shadow Circle -->
+            <circle 
+              cx="80" cy="80" r="58"
+              fill="white"
+              filter="url(#innerShadow)"
+            ></circle>
+
+            <!-- Center Icon with Animation -->
+            <g class="center-icon">
+              <image 
+                href="/assets/group.svg"
+                x="50"
+                y="50"
+                height="60"
+                width="60"
+              />
+            </g>
+
+            <!-- Center Text - Count with Animation -->
+            <text 
+              x="80" 
+              y="125" 
+              text-anchor="middle" 
+              font-size="32" 
+              font-weight="800" 
+              fill="url(#textGradient)"
+              class="center-count"
+            >
+              {{ totalUsers() }}
+            </text>
+
+            <!-- Decorative Dots on Active Arc -->
+            <circle 
+              cx="80" cy="10" 
+              r="4" 
+              fill="#10b981"
+              class="arc-dot arc-dot-start"
+            >
+              <animateTransform
+                attributeName="transform"
+                type="rotate"
+                from="0 80 80"
+                [attr.to]="(360 * sessionData().active.percentage / 100) + ' 80 80'"
+                dur="3s"
+                repeatCount="indefinite"
+              />
+            </circle>
 
             <defs>
-              <linearGradient id="dynamicGradient">
-                <stop offset="0%" [attr.stop-color]="sessionData.active.colorStart"/>
-                <stop offset="100%" [attr.stop-color]="sessionData.active.colorEnd"/>
+              <!-- Active Gradient (Green) -->
+              <linearGradient id="activeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+                <stop offset="50%" style="stop-color:#34d399;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#10b981;stop-opacity:1" />
               </linearGradient>
+
+              <!-- Inactive Gradient (Red) -->
+              <linearGradient id="inactiveGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#ef4444;stop-opacity:1" />
+                <stop offset="50%" style="stop-color:#f87171;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#ef4444;stop-opacity:1" />
+              </linearGradient>
+
+              <!-- Text Gradient -->
+              <linearGradient id="textGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style="stop-color:#1f2937;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#4b5563;stop-opacity:1" />
+              </linearGradient>
+
+              <!-- Glow Effect -->
+              <filter id="glow">
+                <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                <feMerge>
+                  <feMergeNode in="coloredBlur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+
+              <!-- Inner Shadow -->
+              <filter id="innerShadow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+                <feOffset dx="0" dy="2" result="offsetblur"/>
+                <feComponentTransfer>
+                  <feFuncA type="linear" slope="0.2"/>
+                </feComponentTransfer>
+                <feMerge>
+                  <feMergeNode/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
             </defs>
 
           </svg>
@@ -64,15 +158,27 @@
           <div class="user-session__legend">
 
             <div class="legend-item">
-              <span class="legend-dot legend-dot--green"></span>
-              <span class="legend-label">Active</span>
-              <span class="legend-value">{{ sessionData.active.percentage }}%</span>
+              <div class="legend-item-left">
+                <span class="legend-dot legend-dot--green"></span>
+                <span class="legend-label">Active</span>
+              </div>
+              <span class="legend-value">{{ sessionData().active.count }} ({{ sessionData().active.percentage }}%)</span>
             </div>
 
             <div class="legend-item">
-              <span class="legend-dot legend-dot--red"></span>
-              <span class="legend-label">Inactive</span>
-              <span class="legend-value">{{ sessionData.inactive.percentage }}%</span>
+              <div class="legend-item-left">
+                <span class="legend-dot legend-dot--red"></span>
+                <span class="legend-label">Inactive</span>
+              </div>
+              <span class="legend-value">{{ sessionData().inactive.count }} ({{ sessionData().inactive.percentage }}%)</span>
+            </div>
+
+            <div class="legend-item legend-item--total">
+              <div class="legend-item-left">
+                <span class="legend-dot legend-dot--blue"></span>
+                <span class="legend-label">Total</span>
+              </div>
+              <span class="legend-value">{{ totalUsers() }} users</span>
             </div>
 
           </div>
@@ -81,7 +187,7 @@
       </div>
 
       <!-- =======================
-           KPI CARDS
+           KPI CARDS (NOW ONLY 2)
       ======================== -->
       <div class="kpi-grid">
 
@@ -93,27 +199,23 @@
           </div>
           <div class="stat-card__value">
             {{ totalInteractions.value }}
-            <span class="stat-card__change stat-card__change--down">
-              {{ totalInteractions.change }}%
+            <span
+              class="stat-card__change"
+              [ngClass]="{
+                'stat-card__change--up': totalInteractions.trend === 'up',
+                'stat-card__change--down': totalInteractions.trend === 'down',
+                'stat-card__change--neutral': totalInteractions.trend === 'neutral'
+              }"
+            >
+              <ng-container *ngIf="totalInteractions.trend !== 'neutral'; else neutralTI">
+                {{ totalInteractions.trend === 'up' ? '+' : '-' }}{{ totalInteractions.change }}%
+              </ng-container>
+              <ng-template #neutralTI>0%</ng-template>
             </span>
+
           </div>
           <div class="stat-card__chart">
             <canvas #interactionChart></canvas>
-          </div>
-        </div>
-
-        <!-- AVG TIME PER CHAT -->
-        <div class="stat-card">
-          <div class="stat-card__header">
-            <img class="stat-card__icon-img" src="/assets/time-left.svg" alt="" />
-            <span class="stat-card__label">Avg Time/Chat</span>
-          </div>
-          <div class="stat-card__value">
-            {{ avgTimePerChat.value }}{{ avgTimePerChat.unit }}
-            <span class="stat-card__change stat-card__change--up">+2%</span>
-          </div>
-          <div class="stat-card__chart">
-            <canvas #timeChart></canvas>
           </div>
         </div>
 
@@ -125,7 +227,15 @@
           </div>
           <div class="stat-card__value">
             {{ avgMessagesPerChat.value }}
-            <span class="stat-card__change stat-card__change--up">+2%</span>
+           <span
+              class="stat-card__change"
+              [ngClass]="{
+                'stat-card__change--up': avgMessagesPerChat.trend === 'up',
+                'stat-card__change--down': avgMessagesPerChat.trend === 'down'
+              }"
+            >
+              {{ avgMessagesPerChat.trend === 'up' ? '+' : '-' }}{{ avgMessagesPerChat.change }}%
+            </span>
           </div>
           <div class="stat-card__chart">
             <canvas #messageChart></canvas>
@@ -168,16 +278,6 @@
         </div>
 
         <div class="chart-toggles">
-          <label>
-            <input type="checkbox" [(ngModel)]="showOrange" (change)="toggleSeries('orange')" />
-            Orange Line
-          </label>
-
-          <label>
-            <input type="checkbox" [(ngModel)]="showBlue" (change)="toggleSeries('blue')" />
-            Blue Line
-          </label>
-
           <button class="download-btn" (click)="downloadChart()">Download PNG</button>
         </div>
 
@@ -185,62 +285,6 @@
 
     </div>
 
-    <!-- =======================
-         USERS TABLE
-    ======================== -->
-    <div class="users-card">
-      <h3 class="card-title">Users</h3>
-
-      <table class="users-table">
-        <thead>
-          <tr>
-            <th><input type="checkbox" (change)="toggleAllUsers()" /></th>
-            <th>Employee</th>
-            <th>Email</th>
-            <th>Role</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          <tr *ngFor="let user of users; let i = index">
-
-            <td>
-              <input
-                type="checkbox"
-                [checked]="isUserSelected(i)"
-                (change)="toggleUserSelection(i)"
-              />
-            </td>
-
-            <td>
-              <div class="user-cell">
-                <img class="user-avatar" [src]="user.avatar" />
-                <span class="user-name">{{ user.name }}</span>
-              </div>
-            </td>
-
-            <td>{{ user.email }}</td>
-            <td>{{ user.role }}</td>
-
-            <td>
-              <span class="status-badge status-badge--active">
-                {{ user.status }}
-              </span>
-            </td>
-
-            <td>
-              <button class="action-btn">
-                <img src="/assets/gear.svg" class="action-icon" />
-              </button>
-            </td>
-
-          </tr>
-        </tbody>
-
-      </table>
-    </div>
 
   </main>
 
