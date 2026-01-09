@@ -1,3 +1,5 @@
+/* ================= LOGIN CARD ================= */
+
 .login-card {
   width: 100%;
   max-width: 760px;
@@ -33,6 +35,8 @@
   font-size: 16px;
 }
 
+/* ================= ROLE OPTIONS ================= */
+
 .role-options .form-check {
   display: flex;
   align-items: center;
@@ -45,6 +49,8 @@
   height: 1.2rem;
 }
 
+/* ================= PASSWORD ================= */
+
 .password-section {
   position: relative;
 }
@@ -56,6 +62,8 @@
   color: #6c757d;
   text-decoration: none;
 }
+
+/* ================= PASSWORD RULES ================= */
 
 .password-rules li {
   margin-bottom: 6px;
@@ -96,6 +104,48 @@
   }
 }
 
+/* ================= FORGOT PASSWORD LINK ================= */
+
+.forgot-password {
+  text-align: right;
+  margin-top: 6px;
+
+  button {
+    background: none;
+    border: none;
+    color: #007bff;
+    font-size: 0.85rem;
+    cursor: pointer;
+    padding: 0;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.forgot-success {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: #166534;              // dark green
+  background-color: #dcfce7;   // light green
+  border: 1px solid #86efac;
+}
+
+.forgot-error {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: #7f1d1d;              // dark red
+  background-color: #fee2e2;   // light red
+  border: 1px solid #fca5a5;
+}
+
+/* ================= BUTTONS ================= */
+
 .btn-primary {
   background-color: #4aa3ff;
   border-color: #4aa3ff;
@@ -109,7 +159,8 @@
   object-fit: contain;
 }
 
-/* Tablet responsiveness */
+/* ================= RESPONSIVE ================= */
+
 @media (max-width: 768px) {
   .login-card {
     max-width: 100%;
@@ -117,7 +168,6 @@
   }
 }
 
-/* Mobile responsiveness */
 @media (max-width: 576px) {
   .login-card {
     padding: 1.5rem !important;
@@ -128,4 +178,51 @@
     align-items: flex-start;
     gap: 0.75rem;
   }
+}
+
+/* ================= FORGOT PASSWORD MODAL (FIXED) ================= */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999; /* 🔥 VERY IMPORTANT */
+}
+
+/* ⚠️ renamed from .modal → .custom-modal */
+.custom-modal {
+  background: #ffffff;
+  padding: 24px;
+  border-radius: 12px;
+  width: 380px;
+  max-width: 90%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  z-index: 10000;
+
+  h2 {
+    margin-bottom: 8px;
+  }
+
+  p {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 16px;
+  }
+
+  input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    margin-bottom: 16px;
+  }
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }

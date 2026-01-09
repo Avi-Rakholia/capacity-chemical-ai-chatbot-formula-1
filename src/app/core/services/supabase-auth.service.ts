@@ -221,6 +221,13 @@ export class SupabaseAuthService {
   requestPasswordReset(email: string): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/reset-password`, { email });
   }
+/**
+ * Alias used by LoginComponent
+ * Keeps component logic clean
+ */
+resetPassword(email: string) {
+  return this.requestPasswordReset(email).toPromise();
+}
 
   /**
    * Update password
