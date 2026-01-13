@@ -144,6 +144,38 @@ export class SupabaseService {
     return data.session;
   }
 
+
+
+  /**
+ * 🔥 REQUIRED FOR INVITE / RESET PASSWORD FLOW
+ * Creates a Supabase session from email link tokens
+ */
+async setSession(tokens: {
+  access_token: string;
+  refresh_token: string;
+}): Promise<{ session: Session | null; error: AuthError | null }> {
+  const { data, error } = await this.supabase.auth.setSession({
+    access_token: tokens.access_token,
+    refresh_token: tokens.refresh_token,
+  });
+
+  if (data?.session) {
+    this.sessionSubject.next(data.session);
+
+    const authUser: AuthUser = {
+      id: data.session.user.id,
+      email: data.session.user.email,
+      role: data.session.user.user_metadata?.['role'] || 'user',
+      metadata: data.session.user.user_metadata,
+    };
+
+    this.currentUserSubject.next(authUser);
+  }
+
+  return { session: data.session, error };
+}
+
+
   /**
    * Get current user
    */
