@@ -2,6 +2,7 @@ import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap, BehaviorSubject } from 'rxjs';
 import { Router } from '@angular/router';
+import { environment } from '../../../environments/environment';
 
 export interface AuthUser {
   id: string;
@@ -54,7 +55,7 @@ export class SupabaseAuthService {
   private http = inject(HttpClient);
   private router = inject(Router);
   
-  private apiUrl = 'http://localhost:3001/auth/supabase';
+  private apiUrl = `${environment.apiUrl}/auth/supabase`;
   
   // Signals for reactive state management
   private currentUserSubject = new BehaviorSubject<AuthUser | null>(null);

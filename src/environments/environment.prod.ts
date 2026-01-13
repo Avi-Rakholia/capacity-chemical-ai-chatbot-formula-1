@@ -1,5 +1,6 @@
 export const environment = {
   production: true,
+  // TODO: Update this to your production API URL
   apiUrl: 'http://localhost:3001',
   // supabase: {
   //   url: 'https://qxumycaclvunxqqdooio.supabase.co',
