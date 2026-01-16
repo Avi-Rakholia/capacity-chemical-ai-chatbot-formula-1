@@ -28,6 +28,11 @@ export interface ChatMessage {
   attachments?: ChatAttachment[];
   isUser: boolean;
   isStreaming?: boolean;
+  // Questionnaire support
+  questionType?: 'text' | 'radio' | 'checkbox' | 'dropdown' | null;
+  questionOptions?: string[];
+  userAnswer?: string | string[];
+  awaitingAnswer?: boolean;
 }
 
 export interface ChatAttachment {
@@ -59,6 +64,9 @@ export interface StreamEvent {
   error?: boolean;
   message?: string;
   conversation_id?: string;
+  // Questionnaire support
+  questionType?: 'text' | 'radio' | 'checkbox' | 'dropdown' | null;
+  questionOptions?: string[];
 }
 
 @Injectable({
@@ -115,6 +123,28 @@ export class ChatService {
   }
 
   /**
+   * Send chat message (non-streaming) - Simple request-response
+   * Use this for questionnaire-style interactions
+   */
+  sendChatMessage(
+    sessionId: number,
+    message: string,
+    userId: number,
+    attachments?: ChatAttachment[],
+    mode?: string,
+    conversationId?: string | null
+  ): Observable<any> {
+    return this.http.post(`${this.apiUrl}/message`, {
+      session_id: sessionId,
+      message: message,
+      user_id: userId,
+      attachments: attachments || [],
+      mode: mode,
+      conversation_id: conversationId
+    });
+  }
+
+  /**
    * Stream chat message with SSE
    * Returns a Subject that emits streaming chunks
    */
@@ -123,7 +153,8 @@ export class ChatService {
     message: string,
     userId: number,
     attachments?: ChatAttachment[],
-    mode?: string
+    mode?: string,
+    conversationId?: string | null
   ): Subject<StreamEvent> {
     const subject = new Subject<StreamEvent>();
     const url = `${this.apiUrl}/stream`;
@@ -135,7 +166,8 @@ export class ChatService {
       message: message,
       user_id: userId,
       attachments: attachments || [],
-      mode: mode
+      mode: mode,
+      conversation_id: conversationId
     }, subject);
 
     return subject;

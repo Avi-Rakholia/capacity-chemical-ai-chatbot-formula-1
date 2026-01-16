@@ -109,7 +109,7 @@
   #chatWindow
 >
 
-      <div *ngFor="let msg of messages()" [class]="msg.isUser ? 'chat-bubble user' : 'chat-bubble ai'">
+      <div *ngFor="let msg of messages(); let i = index" [class]="msg.isUser ? 'chat-bubble user' : 'chat-bubble ai'">
         
         <!-- User message -->
         <div *ngIf="msg.isUser" class="message-content">
@@ -132,10 +132,18 @@
     <div #messageContent class="message-text markdown-content" [innerHTML]="msg.response | markdown">
       <span *ngIf="msg.isStreaming" class="streaming-cursor">▊</span>
     </div>
+
+    <!-- Questionnaire input if question type is provided -->
+    <app-questionnaire-input 
+      *ngIf="msg.questionType && msg.awaitingAnswer && !msg.isStreaming"
+      [questionType]="msg.questionType"
+      [options]="msg.questionOptions || []"
+      (answerSubmitted)="handleQuestionnaireAnswer($event, i)"
+    />
   </div>
 
   <!-- AI actions (outside bubble) -->
-  <div class="ai-actions">
+  <div class="ai-actions" *ngIf="!msg.awaitingAnswer">
     <button type="button" title="Copy" (click)="copyMessageWithFormatting(messageContent)">
       <img src="/assets/copy.svg" alt="Copy" />
     </button>

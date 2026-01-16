@@ -20,6 +20,7 @@ import { ChatService, ChatMessage, ChatTemplate, ChatAttachment, StreamEvent } f
 import { ResourceService } from '../../services/resource.service';
 import { SupabaseAuthService } from '../../core/services/supabase-auth.service';
 import { MarkdownPipe } from '../../shared/pipes/markdown.pipe';
+import { QuestionnaireInputComponent } from '../../components/questionnaire-input/questionnaire-input.component';
 import { Subscription } from 'rxjs';
 
 
@@ -49,7 +50,7 @@ interface Template {
 
 @Component({
   selector: 'app-chatbot',
-  imports: [CommonModule, FormsModule, MarkdownPipe],
+  imports: [CommonModule, FormsModule, MarkdownPipe, QuestionnaireInputComponent],
   templateUrl: './chatbot.component.html',
   styleUrls: ['./chatbot.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -210,8 +211,8 @@ export class ChatbotComponent implements OnInit, OnDestroy {
             if (response.data.conversation_id) {
               this.conversationId.set(response.data.conversation_id);
             }
-            // Now send the message with the new session
-            this.sendMessageWithSession(message, response.data.chat_session_id);
+            // Use non-streaming for questionnaire
+            this.sendMessageNonStreaming(message, response.data.chat_session_id);
           }
         },
         error: (error) => {
@@ -221,8 +222,108 @@ export class ChatbotComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Session exists, send message directly
-    this.sendMessageWithSession(message, sessionId);
+    // Session exists, send message with non-streaming
+    this.sendMessageNonStreaming(message, sessionId);
+  }
+
+  // Helper method to send message with an existing session (non-streaming)
+  private sendMessageNonStreaming(message: string, sessionId: number) {
+    // Hide templates when first message is sent
+    if (this.showTemplates()) {
+      this.showTemplates.set(false);
+    }
+
+    // Add user message to chat
+    const userMsg: ChatMessage = {
+      chat_session_id: sessionId,
+      prompt: message,
+      isUser: true,
+      attachments: this.buildAttachments()
+    };
+    this.messages.update(msgs => [...msgs, userMsg]);
+
+    // Clear input and attachments
+    this.userMessage.set('');
+    this.clearAllSelections();
+
+    // Add placeholder for AI response
+    const aiMsg: ChatMessage = {
+      chat_session_id: sessionId,
+      prompt: '',
+      response: 'Thinking...',
+      isUser: false,
+      isStreaming: false
+    };
+    this.messages.update(msgs => [...msgs, aiMsg]);
+
+    const aiMsgIndex = this.messages().length - 1;
+    const userId = this.authService.getUserId();
+
+    if (!userId) {
+      console.error('User not authenticated');
+      this.messages.update(msgs => {
+        const updated = [...msgs];
+        updated[aiMsgIndex] = {
+          ...updated[aiMsgIndex],
+          response: 'Error: User not authenticated. Please log in again.',
+          isStreaming: false
+        };
+        return updated;
+      });
+      this.cdr.markForCheck();
+      return;
+    }
+
+    // Send non-streaming request
+    this.chatService.sendChatMessage(
+      sessionId,
+      message,
+      userId,
+      userMsg.attachments,
+      this.selectedMode(),
+      this.conversationId()
+    ).subscribe({
+      next: (response: any) => {
+        if (response.success) {
+          const data = response.data;
+          
+          this.messages.update(msgs => {
+            const updated = [...msgs];
+            updated[aiMsgIndex] = {
+              ...updated[aiMsgIndex],
+              response: data.response || data.message || '',
+              interaction_id: data.interaction_id,
+              questionType: data.questionType || null,
+              questionOptions: data.questionOptions || [],
+              awaitingAnswer: data.questionType ? true : false,
+              isStreaming: false
+            };
+            return updated;
+          });
+
+          // Store conversation_id if received
+          if (data.conversation_id) {
+            this.conversationId.set(data.conversation_id);
+            console.log('Stored conversation_id:', data.conversation_id);
+          }
+
+          this.cdr.markForCheck();
+        }
+      },
+      error: (error) => {
+        console.error('Chat error:', error);
+        this.messages.update(msgs => {
+          const updated = [...msgs];
+          updated[aiMsgIndex] = {
+            ...updated[aiMsgIndex],
+            response: 'Error: Failed to get response from AI service.',
+            isStreaming: false
+          };
+          return updated;
+        });
+        this.cdr.markForCheck();
+      }
+    });
   }
 
   // Helper method to send message with an existing session
@@ -284,7 +385,8 @@ export class ChatbotComponent implements OnInit, OnDestroy {
       message,
       userId,
       userMsg.attachments,
-      this.selectedMode()
+      this.selectedMode(),
+      this.conversationId()
     ).subscribe({
       next: (event: StreamEvent) => {
         if (event.chunk) {
@@ -342,7 +444,10 @@ export class ChatbotComponent implements OnInit, OnDestroy {
               ...updated[aiMsgIndex],
               isStreaming: false,
               interaction_id: event.interaction_id,
-              response: finalResponse
+              response: finalResponse,
+              questionType: event.questionType || null,
+              questionOptions: event.questionOptions || [],
+              awaitingAnswer: event.questionType ? true : false
             };
             return updated;
           });
@@ -695,6 +800,32 @@ export class ChatbotComponent implements OnInit, OnDestroy {
     if (!this.selectedResources().find(r => r.resource_id === resource.resource_id)) {
       this.selectedResources.update(resources => [...resources, resource]);
     }
+  }
+
+  // Handle questionnaire answer submission
+  handleQuestionnaireAnswer(answer: string | string[], messageIndex: number): void {
+    const messages = this.messages();
+    const aiMessage = messages[messageIndex];
+    
+    if (!aiMessage || aiMessage.isUser) {
+      return;
+    }
+
+    // Update the AI message to store the user's answer
+    this.messages.update(msgs => {
+      const updated = [...msgs];
+      updated[messageIndex] = {
+        ...updated[messageIndex],
+        userAnswer: answer,
+        awaitingAnswer: false
+      };
+      return updated;
+    });
+
+    // Send the answer as the next user message
+    const answerText = Array.isArray(answer) ? answer.join(', ') : answer;
+    this.userMessage.set(answerText);
+    this.sendMessage();
   }
 
   // Card actions
